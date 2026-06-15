@@ -7,6 +7,7 @@
   <!-- SheetJS để đọc file Excel trực tiếp tại trình duyệt -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <link rel="icon" href="https://upload.wikimedia.org/wikipedia/commons/a/a3/Emblem_of_Vietnam.svg" sizes="32x32" type="image/png">
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
   <script src="config.js"></script>
 </head>
@@ -14,20 +15,20 @@
 
   <header class="bg-blue-800 text-white p-4 flex justify-between items-center shadow-md">
     <h1 class="text-xl font-bold">HỆ THỐNG QUẢN TRỊ TUYỂN SINH</h1>
-    <button onclick="adminLogout()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-sm">Đăng xuất</button>
+    <button onclick="adminLogout()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-sm transition">Đăng xuất</button>
   </header>
 
   <div class="flex flex-1">
     <!-- Menu bên trái -->
-    <nav class="w-64 bg-white border-r space-y-1 p-4">
-      <button onclick="switchTab('dashboard')" class="tab-btn w-full text-left p-2 rounded hover:bg-gray-100 font-medium text-blue-800">1. Dashboard</button>
-      <button onclick="switchTab('combos')" class="tab-btn w-full text-left p-2 rounded hover:bg-gray-100 font-medium">2. Quản lý Tổ hợp</button>
-      <button onclick="switchTab('universities')" class="tab-btn w-full text-left p-2 rounded hover:bg-gray-100 font-medium">3. Quản lý Trường</button>
-      <button onclick="switchTab('majors')" class="tab-btn w-full text-left p-2 rounded hover:bg-gray-100 font-medium">4. Quản lý Ngành</button>
-      <button onclick="switchTab('students')" class="tab-btn w-full text-left p-2 rounded hover:bg-gray-100 font-medium">5. Quản lý Học sinh</button>
-      <button onclick="switchTab('wishes')" class="tab-btn w-full text-left p-2 rounded hover:bg-gray-100 font-medium">6. Quản lý Đăng ký NV</button>
-      <button onclick="switchTab('passwords')" class="tab-btn w-full text-left p-2 rounded hover:bg-gray-100 font-medium">7. Quản lý Mật khẩu</button>
-      <button onclick="switchTab('display')" class="tab-btn w-full text-left p-2 rounded hover:bg-gray-100 font-medium">8. Cấu hình & Hiển thị</button>
+    <nav class="w-64 bg-white border-r space-y-1 p-4" id="adminSidebar">
+      <button data-tab="dashboard" onclick="switchTab('dashboard')" class="tab-btn w-full text-left p-2 rounded hover:bg-gray-100 font-medium text-blue-800 font-bold bg-gray-100">1. Dashboard</button>
+      <button data-tab="combos" onclick="switchTab('combos')" class="tab-btn w-full text-left p-2 rounded hover:bg-gray-100 font-medium">2. Quản lý Tổ hợp</button>
+      <button data-tab="universities" onclick="switchTab('universities')" class="tab-btn w-full text-left p-2 rounded hover:bg-gray-100 font-medium">3. Quản lý Trường</button>
+      <button data-tab="majors" onclick="switchTab('majors')" class="tab-btn w-full text-left p-2 rounded hover:bg-gray-100 font-medium">4. Quản lý Ngành</button>
+      <button data-tab="students" onclick="switchTab('students')" class="tab-btn w-full text-left p-2 rounded hover:bg-gray-100 font-medium">5. Quản lý Học sinh</button>
+      <button data-tab="wishes" onclick="switchTab('wishes')" class="tab-btn w-full text-left p-2 rounded hover:bg-gray-100 font-medium">6. Quản lý Đăng ký NV</button>
+      <button data-tab="passwords" onclick="switchTab('passwords')" class="tab-btn w-full text-left p-2 rounded hover:bg-gray-100 font-medium">7. Quản lý Mật khẩu</button>
+      <button data-tab="display" onclick="switchTab('display')" class="tab-btn w-full text-left p-2 rounded hover:bg-gray-100 font-medium">8. Cấu hình & Hiển thị</button>
     </nav>
 
     <!-- Khu vực hiển thị nội dung từng Tab -->
@@ -36,11 +37,11 @@
       <!-- Tab 1: Dashboard -->
       <section id="tab-dashboard" class="tab-content">
         <h2 class="text-xl font-bold mb-4">Dashboard Hệ Thống</h2>
-        <div class="grid grid-cols-4 gap-4 mb-6">
-          <div class="bg-white p-4 rounded shadow text-center"><p class="text-gray-500">Học sinh đăng ký</p><p id="countStudents" class="text-2xl font-bold">0</p></div>
-          <div class="bg-white p-4 rounded shadow text-center"><p class="text-gray-500">Tổng số Trường</p><p id="countUnis" class="text-2xl font-bold">0</p></div>
-          <div class="bg-white p-4 rounded shadow text-center"><p class="text-gray-500">Tổng số Ngành</p><p id="countMajors" class="text-2xl font-bold">0</p></div>
-          <div class="bg-white p-4 rounded shadow text-center"><p class="text-gray-500">Phiếu đăng ký NV</p><p id="countForms" class="text-2xl font-bold">0</p></div>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div class="bg-white p-4 rounded shadow text-center"><p class="text-gray-500">Học sinh đăng ký</p><p id="countStudents" class="text-2xl font-bold text-blue-800">0</p></div>
+          <div class="bg-white p-4 rounded shadow text-center"><p class="text-gray-500">Tổng số Trường</p><p id="countUnis" class="text-2xl font-bold text-blue-800">0</p></div>
+          <div class="bg-white p-4 rounded shadow text-center"><p class="text-gray-500">Tổng số Ngành</p><p id="countMajors" class="text-2xl font-bold text-blue-800">0</p></div>
+          <div class="bg-white p-4 rounded shadow text-center"><p class="text-gray-500">Phiếu đăng ký NV</p><p id="countForms" class="text-2xl font-bold text-blue-800">0</p></div>
         </div>
       </section>
 
@@ -48,72 +49,80 @@
       <section id="tab-combos" class="tab-content hidden">
         <div class="flex justify-between mb-4">
           <h2 class="text-xl font-bold">Quản lý Tổ hợp xét tuyển</h2>
-          <div class="space-x-2">
-            <button onclick="openPopup('comboPopup')" class="bg-blue-600 text-white px-3 py-1.5 rounded text-sm">Thêm thủ công</button>
+          <div class="space-x-2 flex items-center">
+            <button onclick="openPopup('comboPopup')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-sm transition">Thêm thủ công</button>
             <input type="file" id="comboExcel" class="hidden" onchange="importExcel('combos', this)">
-            <button onclick="document.getElementById('comboExcel').click()" class="bg-green-600 text-white px-3 py-1.5 rounded text-sm">Nhập Excel</button>
+            <button onclick="document.getElementById('comboExcel').click()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-sm transition">Nhập Excel</button>
           </div>
         </div>
-        <table class="w-full bg-white rounded shadow text-left overflow-hidden">
-          <thead class="bg-gray-200">
-            <tr><th class="p-3">Mã tổ hợp</th><th class="p-3">Môn 1</th><th class="p-3">Môn 2</th><th class="p-3">Môn 3</th></tr>
-          </thead>
-          <tbody id="comboTableBody"></tbody>
-        </table>
+        <div class="overflow-x-auto">
+          <table class="w-full bg-white rounded shadow text-left overflow-hidden">
+            <thead class="bg-gray-200">
+              <tr><th class="p-3">Mã tổ hợp</th><th class="p-3">Môn 1</th><th class="p-3">Môn 2</th><th class="p-3">Môn 3</th></tr>
+            </thead>
+            <tbody id="comboTableBody"></tbody>
+          </table>
+        </div>
       </section>
 
       <!-- Tab 3: Quản lý Trường -->
       <section id="tab-universities" class="tab-content hidden">
         <div class="flex justify-between mb-4">
           <h2 class="text-xl font-bold">Quản lý Trường Đại học</h2>
-          <div class="space-x-2">
-            <button onclick="openPopup('uniPopup')" class="bg-blue-600 text-white px-3 py-1.5 rounded text-sm">Thêm thủ công</button>
+          <div class="space-x-2 flex items-center">
+            <button onclick="openPopup('uniPopup')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-sm transition">Thêm thủ công</button>
             <input type="file" id="uniExcel" class="hidden" onchange="importExcel('universities', this)">
-            <button onclick="document.getElementById('uniExcel').click()" class="bg-green-600 text-white px-3 py-1.5 rounded text-sm">Nhập Excel</button>
+            <button onclick="document.getElementById('uniExcel').click()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-sm transition">Nhập Excel</button>
           </div>
         </div>
-        <table class="w-full bg-white rounded shadow text-left overflow-hidden">
-          <thead class="bg-gray-200">
-            <tr><th class="p-3">Mã trường</th><th class="p-3">Tên trường</th></tr>
-          </thead>
-          <tbody id="uniTableBody"></tbody>
-        </table>
+        <div class="overflow-x-auto">
+          <table class="w-full bg-white rounded shadow text-left overflow-hidden">
+            <thead class="bg-gray-200">
+              <tr><th class="p-3">Mã trường</th><th class="p-3">Tên trường</th></tr>
+            </thead>
+            <tbody id="uniTableBody"></tbody>
+          </table>
+        </div>
       </section>
 
       <!-- Tab 4: Quản lý Ngành -->
       <section id="tab-majors" class="tab-content hidden">
         <div class="flex justify-between mb-4">
           <h2 class="text-xl font-bold">Quản lý Ngành học</h2>
-          <div class="space-x-2">
-            <button onclick="openMajorPopup()" class="bg-blue-600 text-white px-3 py-1.5 rounded text-sm">Thêm thủ công</button>
+          <div class="space-x-2 flex items-center">
+            <button onclick="openMajorPopup()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-sm transition">Thêm thủ công</button>
             <input type="file" id="majorExcel" class="hidden" onchange="importExcel('majors', this)">
-            <button onclick="document.getElementById('majorExcel').click()" class="bg-green-600 text-white px-3 py-1.5 rounded text-sm">Nhập Excel</button>
+            <button onclick="document.getElementById('majorExcel').click()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-sm transition">Nhập Excel</button>
           </div>
         </div>
-        <table class="w-full bg-white rounded shadow text-left overflow-hidden">
-          <thead class="bg-gray-200">
-            <tr><th class="p-3">Trường</th><th class="p-3">Mã ngành</th><th class="p-3">Tên ngành</th><th class="p-3">Tổ hợp xét tuyển</th></tr>
-          </thead>
-          <tbody id="majorTableBody"></tbody>
-        </table>
+        <div class="overflow-x-auto">
+          <table class="w-full bg-white rounded shadow text-left overflow-hidden">
+            <thead class="bg-gray-200">
+              <tr><th class="p-3">Trường</th><th class="p-3">Mã ngành</th><th class="p-3">Tên ngành</th><th class="p-3">Tổ hợp xét tuyển</th></tr>
+            </thead>
+            <tbody id="majorTableBody"></tbody>
+          </table>
+        </div>
       </section>
 
       <!-- Tab 5: Quản lý Học sinh -->
       <section id="tab-students" class="tab-content hidden">
         <h2 class="text-xl font-bold mb-4">Danh sách Học sinh</h2>
-        <table class="w-full bg-white rounded shadow text-left overflow-hidden">
-          <thead class="bg-gray-200">
-            <tr>
-              <th class="p-3">Họ và tên</th>
-              <th class="p-3">Tài khoản (Username)</th>
-              <th class="p-3">Số điện thoại</th>
-              <th class="p-3">Lớp</th>
-              <th class="p-3">Trạng thái phiếu NV</th>
-              <th class="p-3">Thao tác</th>
-            </tr>
-          </thead>
-          <tbody id="studentTableBody"></tbody>
-        </table>
+        <div class="overflow-x-auto">
+          <table class="w-full bg-white rounded shadow text-left overflow-hidden">
+            <thead class="bg-gray-200">
+              <tr>
+                <th class="p-3">Họ và tên</th>
+                <th class="p-3">Tài khoản (Username)</th>
+                <th class="p-3">Số điện thoại</th>
+                <th class="p-3">Lớp</th>
+                <th class="p-3">Trạng thái phiếu NV</th>
+                <th class="p-3">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="studentTableBody"></tbody>
+          </table>
+        </div>
       </section>
 
       <!-- Tab 6: Quản lý Đăng ký NV -->
@@ -126,75 +135,89 @@
       <section id="tab-passwords" class="tab-content hidden">
         <h2 class="text-xl font-bold mb-4">Cấp lại Mật khẩu Học sinh</h2>
         <div class="bg-white p-4 rounded shadow space-y-3">
-          <div class="flex space-x-2">
-            <input type="text" id="resetUserSearch" placeholder="Nhập Username học sinh..." class="border p-2 rounded w-1/3">
-            <input type="text" id="newStudentPass" placeholder="Mật khẩu mới..." class="border p-2 rounded w-1/3">
-            <button onclick="resetStudentPassword()" class="bg-red-600 text-white px-4 py-2 rounded">Cập nhật mật khẩu</button>
+          <div class="flex flex-col md:flex-row gap-2">
+            <input type="text" id="resetUserSearch" placeholder="Nhập Username học sinh..." class="border p-2 rounded w-full md:w-1/3">
+            <input type="text" id="newStudentPass" placeholder="Mật khẩu mới..." class="border p-2 rounded w-full md:w-1/3">
+            <button onclick="resetStudentPassword()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded transition">Cập nhật mật khẩu</button>
           </div>
         </div>
       </section>
 
-<!-- Tab 8: Quản lý Hiển thị -->
-<section id="tab-display" class="tab-content hidden">
-  <h2 class="text-xl font-bold mb-4">Cấu hình hệ thống</h2>
-  
-  <div class="bg-white p-6 rounded shadow max-w-lg space-y-4">
-    <!-- Vùng cấu hình cơ bản -->
-    <div>
-      <label class="block text-sm font-semibold mb-1">Ngày bắt đầu kỳ thi</label>
-      <input type="date" id="configExamDate" class="w-full border p-2 rounded">
-    </div>
-    <div>
-      <label class="block text-sm font-semibold mb-1">Số nguyện vọng tối đa được phép đăng ký</label>
-      <input type="number" id="configMaxWishes" class="w-full border p-2 rounded">
-    </div>
-    
-    <!-- Checkbox Khóa nguyện vọng -->
-    <div class="flex items-center space-x-2">
-      <input type="checkbox" id="configLockWishes" class="w-4 h-4">
-      <label for="configLockWishes" class="text-sm font-semibold text-red-600">Khóa chức năng điều chỉnh nguyện vọng</label>
-    </div>
-
-    <button onclick="saveSystemSettings()" class="bg-blue-600 text-white px-4 py-2 rounded w-full">Lưu cấu hình</button>
-
-    <!-- Vùng cấu hình khoảng thứ tự nguyện vọng theo Trường/Ngành -->
-    <div class="border-t pt-4">
-      <h3 class="text-sm font-bold text-gray-700 mb-2">Quy định giới hạn thứ tự theo Trường/Ngành</h3>
-      <div class="bg-gray-50 p-3 rounded space-y-2 text-xs">
-        <div>
-          <label class="block font-semibold mb-1">1. Chọn Trường</label>
-          <select id="ruleUniId" class="w-full border p-1.5 rounded" onchange="loadRuleMajors()"></select>
-        </div>
-        <div>
-          <label class="block font-semibold mb-1">2. Chọn các Ngành áp dụng (Giữ Ctrl để chọn nhiều)</label>
-          <select id="ruleMajorIds" multiple class="w-full border p-1.5 rounded h-20"></select>
-        </div>
-        <div class="grid grid-cols-2 gap-2">
+      <!-- Tab 8: Quản lý Hiển thị -->
+      <section id="tab-display" class="tab-content hidden">
+        <h2 class="text-xl font-bold mb-4">Cấu hình hệ thống</h2>
+        
+        <div class="bg-white p-6 rounded shadow max-w-lg space-y-4">
+          <!-- Vùng cấu hình cơ bản -->
           <div>
-            <label class="block font-semibold mb-1">Thứ tự tối thiểu (Min)</label>
-            <input type="number" id="ruleOrderMin" class="w-full border p-1 rounded" placeholder="Ví dụ: 1">
+            <label class="block text-sm font-semibold mb-1">Ngày bắt đầu kỳ thi</label>
+            <input type="date" id="configExamDate" class="w-full border p-2 rounded">
           </div>
           <div>
-            <label class="block font-semibold mb-1">Thứ tự tối đa (Max)</label>
-            <input type="number" id="ruleOrderMax" class="w-full border p-1 rounded" placeholder="Ví dụ: 3">
+            <label class="block text-sm font-semibold mb-1">Số nguyện vọng tối đa được phép đăng ký</label>
+            <input type="number" id="configMaxWishes" class="w-full border p-2 rounded">
           </div>
-        </div>
-        <button type="button" onclick="createWishRule()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-1.5 rounded mt-1">
-          Tạo & Áp dụng luật giới hạn
-        </button>
-      </div>
+          
+          <!-- Checkbox Khóa nguyện vọng -->
+          <div class="flex items-center space-x-2">
+            <input type="checkbox" id="configLockWishes" class="w-4 h-4">
+            <label for="configLockWishes" class="text-sm font-semibold text-red-600">Khóa chức năng điều chỉnh nguyện vọng</label>
+          </div>
 
-      <!-- Hiển thị danh sách các luật hiện có -->
-      <div class="mt-4">
-        <p class="text-xs font-bold text-gray-600 mb-1">Các luật giới hạn hiện hành:</p>
-        <div id="wishRulesList" class="space-y-1 max-h-32 overflow-y-auto"></div>
-      </div>
-    </div>
+          <button onclick="saveSystemSettings()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded w-full transition">Lưu cấu hình</button>
 
-  </div> 
-</section> 
+          <!-- Vùng cấu hình khoảng thứ tự nguyện vọng theo Trường/Ngành cải tiến -->
+          <div class="border-t pt-4">
+            <h3 class="text-sm font-bold text-gray-700 mb-2">Quy định giới hạn thứ tự theo Ngành học</h3>
+            <div class="bg-gray-50 p-3 rounded space-y-2 text-xs">
+              <div>
+                <label class="block font-semibold mb-1">1. Tìm kiếm ngành học (ở tất cả các trường)</label>
+                <div class="flex gap-1.5">
+                  <input type="text" id="ruleMajorSearchInput" placeholder="Nhập tên hoặc mã ngành..." class="flex-1 border p-1.5 rounded outline-none focus:ring-1 focus:ring-blue-500">
+                  <button type="button" onclick="searchRuleMajors()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 rounded font-semibold text-[11px] transition shrink-0">Tìm kiếm ngành</button>
+                </div>
+              </div>
+              <div>
+                <label class="block font-semibold mb-1">2. Chọn các ngành áp dụng giới hạn (Chọn một hoặc nhiều)</label>
+                
+                <!-- Cụm nút Chọn tất cả / Bỏ chọn mới thêm -->
+                <div id="ruleSelectAllActions" class="hidden flex justify-end space-x-3 mb-1">
+                  <button type="button" onclick="toggleSelectAllRuleMajors(true)" class="text-blue-600 hover:underline font-semibold text-[10px]">☑️ Chọn tất cả</button>
+                  <button type="button" onclick="toggleSelectAllRuleMajors(false)" class="text-gray-500 hover:underline text-[10px]">✖ Bỏ chọn tất cả</button>
+                </div>
+                
+                <div id="ruleMajorsSearchResults" class="border rounded bg-white p-2 max-h-40 overflow-y-auto space-y-1">
+                  <p class="text-gray-400 italic">Vui lòng nhập từ khóa và nhấn "Tìm kiếm ngành"...</p>
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block font-semibold mb-1">Thứ tự tối thiểu (Min)</label>
+                  <input type="number" id="ruleOrderMin" class="w-full border p-1 rounded" placeholder="Ví dụ: 1">
+                </div>
+                <div>
+                  <label class="block font-semibold mb-1">Thứ tự tối đa (Max)</label>
+                  <input type="number" id="ruleOrderMax" class="w-full border p-1 rounded" placeholder="Ví dụ: 3">
+                </div>
+              </div>
+              <button type="button" onclick="createWishRule()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-1.5 rounded mt-1 transition">
+                Tạo & Áp dụng luật giới hạn
+              </button>
+            </div>
+
+            <!-- Hiển thị danh sách các luật hiện có -->
+            <div class="mt-4">
+              <p class="text-xs font-bold text-gray-600 mb-1">Các luật giới hạn hiện hành:</p>
+              <div id="wishRulesList" class="space-y-1 max-h-32 overflow-y-auto"></div>
+            </div>
+          </div>
+
+        </div> 
+      </section> 
+  </div>
+
   <!-- Popup thủ công Tổ hợp -->
-  <div id="comboPopup" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center">
+  <div id="comboPopup" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-40">
     <div class="bg-white p-6 rounded shadow max-w-sm w-full">
       <h3 class="font-bold mb-3">Thêm Tổ Hợp</h3>
       <input type="text" id="popComboId" placeholder="Mã tổ hợp (Ví dụ: A00)" class="w-full border p-2 rounded mb-2">
@@ -202,27 +225,27 @@
       <input type="text" id="popComboM2" placeholder="Môn học 2" class="w-full border p-2 rounded mb-2">
       <input type="text" id="popComboM3" placeholder="Môn học 3" class="w-full border p-2 rounded mb-4">
       <div class="flex justify-end space-x-2">
-        <button onclick="closePopup('comboPopup')" class="bg-gray-300 px-3 py-1.5 rounded">Hủy</button>
-        <button onclick="saveComboManual()" class="bg-blue-600 text-white px-3 py-1.5 rounded">Xác nhận</button>
+        <button onclick="closePopup('comboPopup')" class="bg-gray-300 px-3 py-1.5 rounded hover:bg-gray-400 transition">Hủy</button>
+        <button onclick="saveComboManual()" class="bg-blue-600 text-white px-3 py-1.5 rounded hover:bg-blue-700 transition">Xác nhận</button>
       </div>
     </div>
   </div>
 
   <!-- Popup thủ công Trường -->
-  <div id="uniPopup" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center">
+  <div id="uniPopup" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-40">
     <div class="bg-white p-6 rounded shadow max-w-sm w-full">
       <h3 class="font-bold mb-3">Thêm Trường Đại Học</h3>
       <input type="text" id="popUniId" placeholder="Mã trường (Ví dụ: QST)" class="w-full border p-2 rounded mb-2">
       <input type="text" id="popUniName" placeholder="Tên trường đầy đủ" class="w-full border p-2 rounded mb-4">
       <div class="flex justify-end space-x-2">
-        <button onclick="closePopup('uniPopup')" class="bg-gray-300 px-3 py-1.5 rounded">Hủy</button>
-        <button onclick="saveUniManual()" class="bg-blue-600 text-white px-3 py-1.5 rounded">Xác nhận</button>
+        <button onclick="closePopup('uniPopup')" class="bg-gray-300 px-3 py-1.5 rounded hover:bg-gray-400 transition">Hủy</button>
+        <button onclick="saveUniManual()" class="bg-blue-600 text-white px-3 py-1.5 rounded hover:bg-blue-700 transition">Xác nhận</button>
       </div>
     </div>
   </div>
 
   <!-- Popup thủ công Ngành -->
-  <div id="majorPopup" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center">
+  <div id="majorPopup" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-40">
     <div class="bg-white p-6 rounded shadow max-w-md w-full">
       <h3 class="font-bold mb-3">Thêm Ngành Học</h3>
       <select id="popMajorUniId" class="w-full border p-2 rounded mb-2"></select>
@@ -233,9 +256,32 @@
         <select id="popMajorCombos" multiple class="w-full border p-2 rounded h-24"></select>
       </div>
       <div class="flex justify-end space-x-2">
-        <button onclick="closePopup('majorPopup')" class="bg-gray-300 px-3 py-1.5 rounded">Hủy</button>
-        <button onclick="saveMajorManual()" class="bg-blue-600 text-white px-3 py-1.5 rounded">Xác nhận</button>
+        <button onclick="closePopup('majorPopup')" class="bg-gray-300 px-3 py-1.5 rounded hover:bg-gray-400 transition">Hủy</button>
+        <button onclick="saveMajorManual()" class="bg-blue-600 text-white px-3 py-1.5 rounded hover:bg-blue-700 transition">Xác nhận</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Popup Quá Trình Xử Lý Excel -->
+  <div id="progressPopup" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white p-6 rounded-lg shadow-xl max-w-md w-full text-center space-y-4">
+      <h4 id="progressTitle" class="text-base font-bold text-gray-800">Đang nạp dữ liệu từ Excel</h4>
+      <p class="text-xs text-gray-500 leading-relaxed">Hệ thống đang đồng bộ thông tin từng dòng vào cơ sở dữ liệu. Vui lòng giữ kết nối.</p>
+      
+      <div class="w-full bg-gray-200 rounded-full h-3">
+        <div id="progressBarFill" class="bg-blue-600 h-3 rounded-full transition-all duration-150" style="width: 0%"></div>
+      </div>
+      
+      <p id="progressStatusText" class="text-xs font-semibold text-blue-600">Đang chuẩn bị tệp tin...</p>
+
+      <div id="excelLogContainer" class="hidden text-left bg-red-50 p-3 rounded border border-red-200 text-[11px] text-red-700 max-h-40 overflow-y-auto space-y-1 font-mono">
+        <p class="font-bold border-b border-red-200 pb-1 mb-1">Nhật ký lỗi chi tiết:</p>
+        <div id="excelErrorLogList" class="space-y-1"></div>
+      </div>
+      
+      <button id="progressCloseBtn" onclick="closePopup('progressPopup')" class="hidden w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded text-xs transition">
+        Đóng hộp thoại
+      </button>
     </div>
   </div>
 
@@ -245,19 +291,36 @@
       window.location.href = "index.html";
     }
 
+    let allUnis = [];
+    let ruleMajorsCache = []; // Bộ lưu trữ đệm các ngành phục vụ chức năng tìm kiếm tạo luật
+
+    // Hàm tiện ích ngăn chặn XSS
+    function escapeHTML(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>'"]/g, 
+        tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+      );
+    }
+
     function adminLogout() {
       localStorage.removeItem("adminAuth");
       window.location.href = "index.html";
     }
 
-function switchTab(tabId) {
+    function switchTab(tabId) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('text-blue-800', 'font-bold'));
-      document.getElementById('tab-' + tabId).classList.remove('hidden');
       
-      // KIỂM TRA PHÒNG VỆ: Chỉ cập nhật class nếu sự kiện kích hoạt từ nút bấm thật sự tồn tại
-      if (typeof event !== 'undefined' && event && event.target && event.target.classList) {
-        event.target.classList.add('text-blue-800', 'font-bold');
+      // Đồng bộ hóa trạng thái giao diện của menu bên trái dựa trên thuộc tính data-tab
+      document.querySelectorAll('#adminSidebar .tab-btn').forEach(btn => {
+        btn.classList.remove('text-blue-800', 'font-bold', 'bg-gray-100');
+        if (btn.getAttribute('data-tab') === tabId) {
+          btn.classList.add('text-blue-800', 'font-bold', 'bg-gray-100');
+        }
+      });
+      
+      const targetSec = document.getElementById('tab-' + tabId);
+      if (targetSec) {
+        targetSec.classList.remove('hidden');
       }
       
       if (tabId === 'dashboard') loadDashboard();
@@ -271,31 +334,52 @@ function switchTab(tabId) {
         loadRuleSetup();
       }
     }
+
     function openPopup(id) { document.getElementById(id).classList.remove('hidden'); }
     function closePopup(id) { document.getElementById(id).classList.add('hidden'); }
 
     // --- Tab 1: Dashboard Logic ---
     async function loadDashboard() {
-      const studs = await db.collection("users").where("role", "==", "student").get();
-      const unis = await db.collection("universities").get();
-      const majors = await db.collection("majors").get();
-      const forms = await db.collection("saved_forms").get();
-      
-      document.getElementById('countStudents').innerText = studs.size;
-      document.getElementById('countUnis').innerText = unis.size;
-      document.getElementById('countMajors').innerText = majors.size;
-      document.getElementById('countForms').innerText = forms.size;
+      try {
+        // Tối ưu hóa: Gọi cơ sở dữ liệu song song nhằm tăng tốc độ tải
+        const [studs, unis, majors, forms] = await Promise.all([
+          db.collection("users").where("role", "==", "student").get(),
+          db.collection("universities").get(),
+          db.collection("majors").get(),
+          db.collection("saved_forms").get()
+        ]);
+        
+        document.getElementById('countStudents').innerText = studs.size;
+        document.getElementById('countUnis').innerText = unis.size;
+        document.getElementById('countMajors').innerText = majors.size;
+        document.getElementById('countForms').innerText = forms.size;
+      } catch (error) {
+        console.error("Lỗi khi tải dữ liệu dashboard:", error);
+      }
     }
 
     // --- Tab 2: Tổ hợp Logic ---
     async function loadCombos() {
-      const snap = await db.collection("combos").get();
-      const body = document.getElementById('comboTableBody');
-      body.innerHTML = '';
-      snap.forEach(doc => {
-        const d = doc.data();
-        body.innerHTML += `<tr class="border-b"><td class="p-3">${d.id}</td><td class="p-3">${d.subjects[0]}</td><td class="p-3">${d.subjects[1]}</td><td class="p-3">${d.subjects[2]}</td></tr>`;
-      });
+      try {
+        const snap = await db.collection("combos").get();
+        const body = document.getElementById('comboTableBody');
+        let htmlBuffer = ''; // Tối ưu hóa: Gom chuỗi HTML để ghi DOM một lần duy nhất
+        
+        snap.forEach(doc => {
+          const d = doc.data();
+          const subjects = d.subjects || [];
+          htmlBuffer += `
+            <tr class="border-b hover:bg-gray-50">
+              <td class="p-3 font-mono text-sm">${escapeHTML(d.id)}</td>
+              <td class="p-3 text-sm">${escapeHTML(subjects[0] || '')}</td>
+              <td class="p-3 text-sm">${escapeHTML(subjects[1] || '')}</td>
+              <td class="p-3 text-sm">${escapeHTML(subjects[2] || '')}</td>
+            </tr>`;
+        });
+        body.innerHTML = htmlBuffer;
+      } catch (error) {
+        console.error("Lỗi tải tổ hợp:", error);
+      }
     }
 
     async function saveComboManual() {
@@ -304,56 +388,115 @@ function switchTab(tabId) {
       const m2 = document.getElementById('popComboM2').value.trim();
       const m3 = document.getElementById('popComboM3').value.trim();
       if(id && m1 && m2 && m3) {
-        await db.collection("combos").doc(id).set({ id, subjects: [m1, m2, m3] });
-        closePopup('comboPopup');
-        loadCombos();
+        try {
+          await db.collection("combos").doc(id).set({ id, subjects: [m1, m2, m3] });
+          closePopup('comboPopup');
+          loadCombos();
+          // Reset form nhập liệu
+          document.getElementById('popComboId').value = '';
+          document.getElementById('popComboM1').value = '';
+          document.getElementById('popComboM2').value = '';
+          document.getElementById('popComboM3').value = '';
+        } catch (error) {
+          alert("Lỗi lưu dữ liệu: " + error.message);
+        }
+      } else {
+        alert("Vui lòng nhập đầy đủ thông tin.");
       }
     }
 
     // --- Tab 3: Trường Logic ---
     async function loadUniversities() {
-      const snap = await db.collection("universities").get();
-      const body = document.getElementById('uniTableBody');
-      body.innerHTML = '';
-      snap.forEach(doc => {
-        const d = doc.data();
-        body.innerHTML += `<tr class="border-b"><td class="p-3 font-semibold">${d.id}</td><td class="p-3">${d.name}</td></tr>`;
-      });
+      try {
+        const snap = await db.collection("universities").get();
+        allUnis = [];
+        const body = document.getElementById('uniTableBody');
+        let htmlBuffer = '';
+        
+        snap.forEach(doc => {
+          const d = doc.data();
+          allUnis.push(d);
+          htmlBuffer += `
+            <tr class="border-b hover:bg-gray-50">
+              <td class="p-3 font-semibold font-mono text-sm">${escapeHTML(d.id)}</td>
+              <td class="p-3 text-sm">${escapeHTML(d.name)}</td>
+            </tr>`;
+        });
+        body.innerHTML = htmlBuffer;
+      } catch (error) {
+        console.error("Lỗi tải danh sách trường:", error);
+      }
     }
 
     async function saveUniManual() {
       const id = document.getElementById('popUniId').value.trim().toUpperCase();
       const name = document.getElementById('popUniName').value.trim();
       if(id && name) {
-        await db.collection("universities").doc(id).set({ id, name });
-        closePopup('uniPopup');
-        loadUniversities();
+        try {
+          await db.collection("universities").doc(id).set({ id, name });
+          closePopup('uniPopup');
+          loadUniversities();
+          document.getElementById('popUniId').value = '';
+          document.getElementById('popUniName').value = '';
+        } catch (error) {
+          alert("Lỗi lưu thông tin trường: " + error.message);
+        }
+      } else {
+        alert("Vui lòng điền đủ mã trường và tên trường.");
       }
     }
 
     // --- Tab 4: Ngành Logic ---
     async function loadMajors() {
-      const snap = await db.collection("majors").get();
-      const body = document.getElementById('majorTableBody');
-      body.innerHTML = '';
-      snap.forEach(doc => {
-        const d = doc.data();
-        body.innerHTML += `<tr class="border-b"><td class="p-3 font-mono text-xs">${d.uniId}</td><td class="p-3 font-semibold">${d.id}</td><td class="p-3">${d.name}</td><td class="p-3">${d.combos.join(', ')}</td></tr>`;
-      });
+      try {
+        const snap = await db.collection("majors").get();
+        const body = document.getElementById('majorTableBody');
+        let htmlBuffer = '';
+        
+        snap.forEach(doc => {
+          const d = doc.data();
+          const combos = d.combos ? d.combos.join(', ') : '';
+          htmlBuffer += `
+            <tr class="border-b hover:bg-gray-50">
+              <td class="p-3 font-mono text-xs">${escapeHTML(d.uniId)}</td>
+              <td class="p-3 font-semibold font-mono text-sm">${escapeHTML(d.id)}</td>
+              <td class="p-3 text-sm">${escapeHTML(d.name)}</td>
+              <td class="p-3 text-sm">${escapeHTML(combos)}</td>
+            </tr>`;
+        });
+        body.innerHTML = htmlBuffer;
+      } catch (error) {
+        console.error("Lỗi tải danh sách ngành học:", error);
+      }
     }
 
     async function openMajorPopup() {
-      const unis = await db.collection("universities").get();
-      const uSelect = document.getElementById('popMajorUniId');
-      uSelect.innerHTML = '';
-      unis.forEach(d => uSelect.innerHTML += `<option value="${d.id}">${d.data().name} (${d.id})</option>`);
+      try {
+        // Tối ưu hóa: Gọi dữ liệu song song tránh block kết nối mạng tuần tự
+        const [unis, combos] = await Promise.all([
+          db.collection("universities").get(),
+          db.collection("combos").get()
+        ]);
+        
+        const uSelect = document.getElementById('popMajorUniId');
+        let uniHTML = '';
+        unis.forEach(d => {
+          const u = d.data();
+          uniHTML += `<option value="${escapeHTML(d.id)}">${escapeHTML(u.name)} (${escapeHTML(d.id)})</option>`;
+        });
+        uSelect.innerHTML = uniHTML;
 
-      const combos = await db.collection("combos").get();
-      const cSelect = document.getElementById('popMajorCombos');
-      cSelect.innerHTML = '';
-      combos.forEach(d => cSelect.innerHTML += `<option value="${d.id}">${d.id}</option>`);
+        const cSelect = document.getElementById('popMajorCombos');
+        let comboHTML = '';
+        combos.forEach(d => {
+          comboHTML += `<option value="${escapeHTML(d.id)}">${escapeHTML(d.id)}</option>`;
+        });
+        cSelect.innerHTML = comboHTML;
 
-      openPopup('majorPopup');
+        openPopup('majorPopup');
+      } catch (error) {
+        alert("Lỗi nạp danh sách cấu hình: " + error.message);
+      }
     }
 
     async function saveMajorManual() {
@@ -361,264 +504,443 @@ function switchTab(tabId) {
       const id = document.getElementById('popMajorId').value.trim();
       const name = document.getElementById('popMajorName').value.trim();
       const selectedCombos = Array.from(document.getElementById('popMajorCombos').selectedOptions).map(o => o.value);
+      
       if(uniId && id && name && selectedCombos.length > 0) {
-        await db.collection("majors").doc(uniId + "_" + id).set({ uniId, id, name, combos: selectedCombos });
-        closePopup('majorPopup');
-        loadMajors();
+        try {
+          await db.collection("majors").doc(uniId + "_" + id).set({ uniId, id, name, combos: selectedCombos });
+          closePopup('majorPopup');
+          loadMajors();
+          document.getElementById('popMajorId').value = '';
+          document.getElementById('popMajorName').value = '';
+        } catch (error) {
+          alert("Lỗi lưu trữ ngành học mới: " + error.message);
+        }
+      } else {
+        alert("Vui lòng nhập đầy đủ thông tin và chọn ít nhất một tổ hợp.");
       }
     }
 
     // --- Xử lý nạp File Excel chung (SheetJS) ---
-function importExcel(type, inputElement) {
-  const file = inputElement.files[0];
-  if (!file) return;
+    function importExcel(type, inputElement) {
+      const file = inputElement.files[0];
+      if (!file) return;
 
-  // 1. Khởi tạo trạng thái giao diện của Popup Tiến trình
-  openPopup('progressPopup');
-  document.getElementById('progressCloseBtn').classList.add('hidden');
-  document.getElementById('excelLogContainer').classList.add('hidden');
-  document.getElementById('excelErrorLogList').innerHTML = '';
-  document.getElementById('progressBarFill').style.width = '0%';
-  document.getElementById('progressStatusText').innerText = 'Đang đọc dữ liệu từ tệp tin...';
-  document.getElementById('progressStatusText').className = "text-xs font-semibold text-blue-600";
+      openPopup('progressPopup');
+      document.getElementById('progressCloseBtn').classList.add('hidden');
+      document.getElementById('excelLogContainer').classList.add('hidden');
+      document.getElementById('excelErrorLogList').innerHTML = '';
+      document.getElementById('progressBarFill').style.width = '0%';
+      document.getElementById('progressStatusText').innerText = 'Đang đọc dữ liệu từ tệp tin...';
+      document.getElementById('progressStatusText').className = "text-xs font-semibold text-blue-600";
 
-  // KIỂM TRA PHÒNG VỆ: Kiểm tra xem thư viện SheetJS đã tải thành công chưa
-  if (typeof XLSX === 'undefined') {
-    document.getElementById('progressStatusText').innerText = "Lỗi hệ thống: Thư viện xử lý Excel (SheetJS) chưa được tải. Vui lòng kiểm tra lại kết nối mạng hoặc liên kết CDN.";
-    document.getElementById('progressStatusText').className = "text-xs font-semibold text-red-600";
-    document.getElementById('progressCloseBtn').classList.remove('hidden');
-    inputElement.value = '';
-    return;
-  }
-
-  const reader = new FileReader();
-  reader.onload = async function(e) {
-    try {
-      const data = new Uint8Array(e.target.result);
-      
-      // KIỂM TRA PHÒNG VỆ: Đọc file Excel an toàn
-      let workbook;
-      try {
-        workbook = XLSX.read(data, { type: 'array' });
-      } catch (parseError) {
-        document.getElementById('progressStatusText').innerText = "Lỗi: Không thể phân tích tệp tin. Vui lòng chắc chắn đây là tệp Excel (.xlsx) chuẩn.";
+      if (typeof XLSX === 'undefined') {
+        document.getElementById('progressStatusText').innerText = "Lỗi hệ thống: Thư viện xử lý Excel (SheetJS) chưa được tải. Vui lòng kiểm tra kết nối mạng.";
         document.getElementById('progressStatusText').className = "text-xs font-semibold text-red-600";
         document.getElementById('progressCloseBtn').classList.remove('hidden');
+        inputElement.value = '';
         return;
       }
 
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(sheet);
-
-      const totalRows = rows.length;
-      if (totalRows === 0) {
-        document.getElementById('progressStatusText').innerText = "Lỗi: Tệp Excel không chứa hàng dữ liệu nào.";
-        document.getElementById('progressStatusText').className = "text-xs font-semibold text-red-600";
-        document.getElementById('progressCloseBtn').classList.remove('hidden');
-        return;
-      }
-
-      let successCount = 0;
-      let errorLogs = [];
-
-      // 2. Vòng lặp duyệt qua từng dòng dữ liệu trong Excel
-      for (let i = 0; i < totalRows; i++) {
-        const row = rows[i];
-        const rowNum = i + 2;
-
+      const reader = new FileReader();
+      reader.onload = async function(e) {
         try {
-          // ==========================================
-          // A. XỬ LÝ NHẬP TỔ HỢP MÔN (COMBOS)
-          // ==========================================
-          if (type === 'combos') {
-            const rawMaToHop = row.MaToHop ? row.MaToHop.toString().trim() : "";
-            const rawMon1 = row.Mon1 ? row.Mon1.toString().trim() : "";
-            const rawMon2 = row.Mon2 ? row.Mon2.toString().trim() : "";
-            const rawMon3 = row.Mon3 ? row.Mon3.toString().trim() : "";
-
-            if (rawMaToHop === "" || rawMon1 === "" || rawMon2 === "" || rawMon3 === "") {
-              errorLogs.push(`Dòng ${rowNum}: Thiếu dữ liệu cột bắt buộc (Yêu cầu: MaToHop, Mon1, Mon2, Mon3).`);
-              continue;
-            }
-
-            await db.collection("combos").doc(rawMaToHop.toUpperCase()).set({
-              id: rawMaToHop.toUpperCase(),
-              subjects: [rawMon1, rawMon2, rawMon3]
-            });
-            successCount++;
-          } 
+          const data = new Uint8Array(e.target.result);
           
-          // ==========================================
-          // B. XỬ LÝ NHẬP TRƯỜNG ĐẠI HỌC (UNIVERSITIES)
-          // ==========================================
-          else if (type === 'universities') {
-            const rawMaTruong = row.MaTruong ? row.MaTruong.toString().trim() : "";
-            const rawTenTruong = row.TenTruong ? row.TenTruong.toString().trim() : "";
-
-            if (rawMaTruong === "" || rawTenTruong === "") {
-              errorLogs.push(`Dòng ${rowNum}: Thiếu dữ liệu cột bắt buộc (Yêu cầu: MaTruong, TenTruong).`);
-              continue;
-            }
-
-            await db.collection("universities").doc(rawMaTruong.toUpperCase()).set({
-              id: rawMaTruong.toUpperCase(),
-              name: rawTenTruong
-            });
-            successCount++;
-          } 
-          
-          // C. XỬ LÝ NHẬP NGÀNH HỌC (MAJORS)
-          // ==========================================
-          else if (type === 'majors') {
-            const rawMaTruong = row.MaTruong ? row.MaTruong.toString().trim() : "";
-            let rawMaNganh = row.MaNganh ? row.MaNganh.toString().trim() : "";
-            const rawTenNganh = row.TenNganh ? row.TenNganh.toString().trim() : "";
-            const rawToHop = row.ToHop ? row.ToHop.toString().trim() : "";
-
-            // Kiểm tra các cột dữ liệu bắt buộc khác trước
-            if (rawMaTruong === "" || rawTenNganh === "" || rawToHop === "") {
-              errorLogs.push(`Dòng ${rowNum}: Thiếu thông tin bắt buộc (Yêu cầu phải có MaTruong, TenNganh, ToHop).`);
-              continue;
-            }
-
-            // Nếu không tìm thấy mã ngành, tự sinh mã bắt đầu bằng 2027 dựa trên tên ngành và trường
-            if (rawMaNganh === "") {
-              let hash = 0;
-              const combinedStr = rawMaTruong.toUpperCase() + "_" + rawTenNganh;
-              for (let j = 0; j < combinedStr.length; j++) {
-                hash = (hash << 5) - hash + combinedStr.charCodeAt(j);
-                hash |= 0; // Chuyển đổi thành số nguyên 32-bit
-              }
-              // Chuyển hash thành chuỗi số dương và định dạng lấy 6 chữ số
-              const suffix = Math.abs(hash).toString().padEnd(6, '0').slice(0, 6);
-              rawMaNganh = "2027" + suffix;
-            }
-
-            const arrCombos = rawToHop.split(',')
-                                      .map(s => s.trim().toUpperCase())
-                                      .filter(s => s !== "");
-
-            if (arrCombos.length === 0) {
-              errorLogs.push(`Dòng ${rowNum}: Không tìm thấy danh sách tổ hợp xét tuyển hợp lệ.`);
-              continue;
-            }
-
-            const docId = `${rawMaTruong.toUpperCase()}_${rawMaNganh}`;
-            
-            await db.collection("majors").doc(docId).set({
-              uniId: rawMaTruong.toUpperCase(),
-              id: rawMaNganh,
-              name: rawTenNganh,
-              combos: arrCombos
-            });
-            successCount++;
+          let workbook;
+          try {
+            workbook = XLSX.read(data, { type: 'array' });
+          } catch (parseError) {
+            document.getElementById('progressStatusText').innerText = "Lỗi: Không thể phân tích tệp tin. Vui lòng kiểm tra lại định dạng tệp Excel (.xlsx).";
+            document.getElementById('progressStatusText').className = "text-xs font-semibold text-red-600";
+            document.getElementById('progressCloseBtn').classList.remove('hidden');
+            return;
           }
-        } catch (dbError) {
-          errorLogs.push(`Dòng ${rowNum}: Lỗi kết nối Firestore (${dbError.message}).`);
+
+          const sheet = workbook.Sheets[workbook.SheetNames[0]];
+          const rows = XLSX.utils.sheet_to_json(sheet);
+
+          const totalRows = rows.length;
+          if (totalRows === 0) {
+            document.getElementById('progressStatusText').innerText = "Lỗi: Tệp Excel không chứa dữ liệu hợp lệ.";
+            document.getElementById('progressStatusText').className = "text-xs font-semibold text-red-600";
+            document.getElementById('progressCloseBtn').classList.remove('hidden');
+            return;
+          }
+
+          let successCount = 0;
+          let errorLogs = [];
+
+          for (let i = 0; i < totalRows; i++) {
+            const row = rows[i];
+            const rowNum = i + 2;
+
+            try {
+              if (type === 'combos') {
+                const rawMaToHop = row.MaToHop ? row.MaToHop.toString().trim() : "";
+                const rawMon1 = row.Mon1 ? row.Mon1.toString().trim() : "";
+                const rawMon2 = row.Mon2 ? row.Mon2.toString().trim() : "";
+                const rawMon3 = row.Mon3 ? row.Mon3.toString().trim() : "";
+
+                if (rawMaToHop === "" || rawMon1 === "" || rawMon2 === "" || rawMon3 === "") {
+                  errorLogs.push(`Dòng ${rowNum}: Thiếu cột thông tin bắt buộc (Yêu cầu: MaToHop, Mon1, Mon2, Mon3).`);
+                  continue;
+                }
+
+                await db.collection("combos").doc(rawMaToHop.toUpperCase()).set({
+                  id: rawMaToHop.toUpperCase(),
+                  subjects: [rawMon1, rawMon2, rawMon3]
+                });
+                successCount++;
+              } 
+              else if (type === 'universities') {
+                const rawMaTruong = row.MaTruong ? row.MaTruong.toString().trim() : "";
+                const rawTenTruong = row.TenTruong ? row.TenTruong.toString().trim() : "";
+
+                if (rawMaTruong === "" || rawTenTruong === "") {
+                  errorLogs.push(`Dòng ${rowNum}: Thiếu dữ liệu bắt buộc (Yêu cầu: MaTruong, TenTruong).`);
+                  continue;
+                }
+
+                await db.collection("universities").doc(rawMaTruong.toUpperCase()).set({
+                  id: rawMaTruong.toUpperCase(),
+                  name: rawTenTruong
+                });
+                successCount++;
+              } 
+              else if (type === 'majors') {
+                const rawMaTruong = row.MaTruong ? row.MaTruong.toString().trim() : "";
+                let rawMaNganh = row.MaNganh ? row.MaNganh.toString().trim() : "";
+                const rawTenNganh = row.TenNganh ? row.TenNganh.toString().trim() : "";
+                const rawToHop = row.ToHop ? row.ToHop.toString().trim() : "";
+
+                if (rawMaTruong === "" || rawTenNganh === "" || rawToHop === "") {
+                  errorLogs.push(`Dòng ${rowNum}: Thiếu thông tin bắt buộc (Yêu cầu: MaTruong, TenNganh, ToHop).`);
+                  continue;
+                }
+
+                if (rawMaNganh === "") {
+                  let hash = 0;
+                  const combinedStr = rawMaTruong.toUpperCase() + "_" + rawTenNganh;
+                  for (let j = 0; j < combinedStr.length; j++) {
+                    hash = (hash << 5) - hash + combinedStr.charCodeAt(j);
+                    hash |= 0; 
+                  }
+                  const suffix = Math.abs(hash).toString().padEnd(6, '0').slice(0, 6);
+                  rawMaNganh = "2027" + suffix;
+                }
+
+                const arrCombos = rawToHop.split(',')
+                                          .map(s => s.trim().toUpperCase())
+                                          .filter(s => s !== "");
+
+                if (arrCombos.length === 0) {
+                  errorLogs.push(`Dòng ${rowNum}: Không tìm thấy danh sách tổ hợp xét tuyển hợp lệ.`);
+                  continue;
+                }
+
+                const docId = `${rawMaTruong.toUpperCase()}_${rawMaNganh}`;
+                
+                await db.collection("majors").doc(docId).set({
+                  uniId: rawMaTruong.toUpperCase(),
+                  id: rawMaNganh,
+                  name: rawTenNganh,
+                  combos: arrCombos
+                });
+                successCount++;
+              }
+            } catch (dbError) {
+              errorLogs.push(`Dòng ${rowNum}: Lỗi cập nhật lên máy chủ (${dbError.message}).`);
+            }
+
+            const percentage = Math.round(((i + 1) / totalRows) * 100);
+            document.getElementById('progressBarFill').style.width = `${percentage}%`;
+            document.getElementById('progressStatusText').innerText = `Đang xử lý: ${i + 1} / ${totalRows} dòng (${percentage}%)`;
+          }
+
+          const failedCount = errorLogs.length;
+          
+          if (failedCount > 0) {
+            document.getElementById('progressStatusText').innerText = `Hoàn tất. Thành công: ${successCount}/${totalRows}, Thất bại: ${failedCount}`;
+            document.getElementById('progressStatusText').className = "text-xs font-semibold text-yellow-600";
+            
+            const logList = document.getElementById('excelErrorLogList');
+            logList.innerHTML = '';
+            let logBuffer = '';
+            errorLogs.forEach(log => {
+              logBuffer += `<p class="border-b border-red-100/50 pb-0.5">⚠️ ${escapeHTML(log)}</p>`;
+            });
+            logList.innerHTML = logBuffer;
+            document.getElementById('excelLogContainer').classList.remove('hidden');
+          } else {
+            document.getElementById('progressStatusText').innerText = `Thành công! Đã xử lý toàn bộ ${successCount} dòng dữ liệu.`;
+            document.getElementById('progressStatusText').className = "text-xs font-semibold text-green-600";
+          }
+
+          document.getElementById('progressCloseBtn').classList.remove('hidden');
+          switchTab(type);
+
+        } catch (error) {
+          console.error("Lỗi cấu trúc tệp Excel: ", error);
+          document.getElementById('progressStatusText').innerText = "Đã xảy ra lỗi hệ thống khi xử lý cấu trúc tệp tin.";
+          document.getElementById('progressStatusText').className = "text-xs font-semibold text-red-600";
+          document.getElementById('progressCloseBtn').classList.remove('hidden');
+        } finally {
+          inputElement.value = '';
         }
-
-        // Cập nhật phần trăm tiến trình
-        const percentage = Math.round(((i + 1) / totalRows) * 100);
-        document.getElementById('progressBarFill').style.width = `${percentage}%`;
-        document.getElementById('progressStatusText').innerText = `Đang xử lý: ${i + 1} / ${totalRows} dòng (${percentage}%)`;
-      }
-
-      // 3. Báo cáo kết quả
-      const failedCount = errorLogs.length;
-      
-      if (failedCount > 0) {
-        document.getElementById('progressStatusText').innerText = `Hoàn tất. Thành công: ${successCount}/${totalRows}, Thất bại: ${failedCount}`;
-        document.getElementById('progressStatusText').className = "text-xs font-semibold text-yellow-600";
-        
-        const logList = document.getElementById('excelErrorLogList');
-        logList.innerHTML = '';
-        errorLogs.forEach(log => {
-          logList.innerHTML += `<p class="border-b border-red-100/50 pb-0.5">⚠️ ${log}</p>`;
-        });
-        document.getElementById('excelLogContainer').classList.remove('hidden');
-      } else {
-        document.getElementById('progressStatusText').innerText = `Hoàn tất! Đã đồng bộ thành công cả ${successCount} dòng dữ liệu.`;
-        document.getElementById('progressStatusText').className = "text-xs font-semibold text-green-600";
-      }
-
-      document.getElementById('progressCloseBtn').classList.remove('hidden');
-      switchTab(type);
-
-    } catch (error) {
-      console.error("Lỗi cấu trúc tệp Excel: ", error);
-      document.getElementById('progressStatusText').innerText = "Đã xảy ra lỗi hệ thống không rõ nguyên nhân khi phân tích cấu trúc tệp Excel.";
-      document.getElementById('progressStatusText').className = "text-xs font-semibold text-red-600";
-      document.getElementById('progressCloseBtn').classList.remove('hidden');
-    } finally {
-      inputElement.value = '';
+      };
+      reader.readAsArrayBuffer(file);
     }
-  };
-  reader.readAsArrayBuffer(file);
-}
-    // --- Tab 5: Quản lý học sinh ---
+
+    // --- Tab 5: Quản lý học sinh (Khắc phục hoàn toàn lỗi truy vấn mạng lồng nhau) ---
     async function loadStudents() {
-      const snap = await db.collection("users").where("role", "==", "student").get();
       const body = document.getElementById('studentTableBody');
-      body.innerHTML = '';
-      for (const doc of snap.docs) {
-        const u = doc.data();
-        const wishDoc = await db.collection("wishes").doc(u.username).get();
-        const hasForm = wishDoc.exists && wishDoc.data().wishes?.length > 0 ? "Đã lưu phiếu" : "Chưa đăng ký";
-        body.innerHTML += `
-          <tr class="border-b text-sm">
-            <td class="p-3">${u.fullName}</td>
-            <td class="p-3 font-mono">${u.username}</td>
-            <td class="p-3">${u.phone}</td>
-            <td class="p-3">${u.class}</td>
-            <td class="p-3"><span class="px-2 py-1 text-xs rounded ${wishDoc.exists ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">${hasForm}</span></td>
-            <td class="p-3 space-x-2">
-              <button onclick="editStudent('${u.username}')" class="text-blue-600 hover:underline">Sửa</button>
-              <button onclick="deleteStudent('${u.username}')" class="text-red-600 hover:underline">Xóa</button>
-            </td>
-          </tr>
-        `;
+      body.innerHTML = '<tr><td colspan="6" class="p-3 text-center text-gray-500">Đang tải dữ liệu học sinh...</td></tr>';
+      
+      try {
+        // Tối ưu hóa: Gọi gộp dữ liệu từ 2 bộ sưu tập thay vì gọi trong vòng lặp
+        const [studSnap, wishesSnap] = await Promise.all([
+          db.collection("users").where("role", "==", "student").get(),
+          db.collection("wishes").get()
+        ]);
+
+        // Ánh xạ trạng thái có nguyện vọng trong bộ nhớ để truy xuất tốc độ cao
+        const wishesSet = new Set();
+        wishesSnap.forEach(doc => {
+          const data = doc.data();
+          if (data.wishes && data.wishes.length > 0) {
+            wishesSet.add(doc.id);
+          }
+        });
+
+        let htmlBuffer = '';
+        studSnap.forEach(doc => {
+          const u = doc.data();
+          const username = u.username;
+          const hasForm = wishesSet.has(username) ? "Đã lưu phiếu" : "Chưa đăng ký";
+          const badgeColor = wishesSet.has(username) ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800";
+          
+          htmlBuffer += `
+            <tr class="border-b text-sm hover:bg-gray-50">
+              <td class="p-3">${escapeHTML(u.fullName)}</td>
+              <td class="p-3 font-mono">${escapeHTML(username)}</td>
+              <td class="p-3">${escapeHTML(u.phone || '')}</td>
+              <td class="p-3">${escapeHTML(u.class || '')}</td>
+              <td class="p-3"><span class="px-2 py-1 text-xs rounded ${badgeColor}">${hasForm}</span></td>
+              <td class="p-3 space-x-2">
+                <button onclick="editStudent('${escapeHTML(username)}')" class="text-blue-600 hover:underline">Sửa</button>
+                <button onclick="deleteStudent('${escapeHTML(username)}')" class="text-red-600 hover:underline">Xóa</button>
+              </td>
+            </tr>
+          `;
+        });
+
+        if (studSnap.empty) {
+          body.innerHTML = '<tr><td colspan="6" class="p-3 text-center text-gray-400">Không tìm thấy dữ liệu học sinh.</td></tr>';
+        } else {
+          body.innerHTML = htmlBuffer;
+        }
+      } catch (error) {
+        console.error("Lỗi khi tải danh sách học sinh:", error);
+        body.innerHTML = '<tr><td colspan="6" class="p-3 text-center text-red-500">Lỗi kết nối máy chủ.</td></tr>';
       }
     }
 
     async function deleteStudent(username) {
-      if(confirm(`Bạn có chắc muốn xóa học sinh ${username}? Hành động này không thể hoàn tác.`)) {
-        await db.collection("users").doc(username).delete();
-        await db.collection("wishes").doc(username).delete();
-        loadStudents();
+      const msg = `Bạn có chắc chắn muốn xóa học sinh ${username}? \nHành động này sẽ xóa hoàn toàn tài khoản, các nguyện vọng, tổ hợp đăng ký và các phiếu lưu trữ liên quan đến học sinh này khỏi hệ thống.`;
+      if(confirm(msg)) {
+        try {
+          const deletePromises = [];
+          
+          // 1. Tìm kiếm và xóa tất cả các phiếu lưu trữ (saved_forms) của học sinh
+          const formsSnap = await db.collection("saved_forms").where("studentUid", "==", username).get();
+          formsSnap.forEach(doc => {
+            deletePromises.push(doc.ref.delete());
+          });
+
+          // 2. Thêm tiến trình xóa tài khoản, danh sách nguyện vọng hiện hành, và tổ hợp môn đã đăng ký
+          deletePromises.push(db.collection("users").doc(username).delete());
+          deletePromises.push(db.collection("wishes").doc(username).delete());
+          deletePromises.push(db.collection("student_combos").doc(username).delete());
+
+          // Thực hiện đồng loạt tiến trình xóa
+          await Promise.all(deletePromises);
+          
+          alert("Đã xóa hoàn tất toàn bộ thông tin liên quan đến học sinh này.");
+          loadStudents();
+        } catch (error) {
+          alert("Lỗi khi xóa dữ liệu học sinh: " + error.message);
+        }
       }
     }
 
     async function editStudent(username) {
-      const name = prompt("Nhập tên mới:");
-      if (name) {
-        await db.collection("users").doc(username).update({ fullName: name });
-        loadStudents();
+      try {
+        const doc = await db.collection("users").doc(username).get();
+        if (!doc.exists) {
+          alert("Không tìm thấy thông tin học sinh trên máy chủ.");
+          return;
+        }
+        const data = doc.data();
+        
+        // Gán tất cả các trường dữ liệu hiện hành vào giao diện sửa đổi
+        document.getElementById('editOldUsername').value = username;
+        document.getElementById('editStudentFullName').value = data.fullName || "";
+        document.getElementById('editStudentUsername').value = username;
+        document.getElementById('editStudentPassword').value = data.password || "";
+        document.getElementById('editStudentClass').value = data.class || "";
+        document.getElementById('editStudentId').value = data.studentId || "";
+        document.getElementById('editStudentPhone').value = data.phone || "";
+        document.getElementById('editStudentDob').value = data.dob || "";
+        document.getElementById('editStudentDept').value = data.department || "";
+        
+        openPopup('studentEditPopup');
+      } catch (error) {
+        alert("Lỗi nạp thông tin học sinh: " + error.message);
       }
     }
+    async function saveStudentEdit() {
+      const oldUser = document.getElementById('editOldUsername').value;
+      const newName = document.getElementById('editStudentFullName').value.trim();
+      const newUser = document.getElementById('editStudentUsername').value.trim();
+      const newPass = document.getElementById('editStudentPassword').value.trim();
+      const newClass = document.getElementById('editStudentClass').value.trim();
+      const newStudentId = document.getElementById('editStudentId').value.trim();
+      const newPhone = document.getElementById('editStudentPhone').value.trim();
+      const newDob = document.getElementById('editStudentDob').value.trim();
+      const newDept = document.getElementById('editStudentDept').value.trim();
 
-    // --- Tab 6: Quản lý Đăng ký NV ---
-    async function loadWishesMonitor() {
-      const container = document.getElementById('wishesMonitorList');
-      container.innerHTML = '';
-      const snap = await db.collection("wishes").get();
-      if(snap.empty) {
-        container.innerHTML = '<p class="text-gray-500 text-center">Chưa có bản ghi nguyện vọng nào.</p>';
+      if (!newName || !newUser || !newPass) {
+        alert("Vui lòng điền đầy đủ các thông tin bắt buộc (Họ tên, Tài khoản, Mật khẩu).");
         return;
       }
-      for (const doc of snap.docs) {
-        const d = doc.data();
-        const uDoc = await db.collection("users").doc(doc.id).get();
-        const u = uDoc.exists ? uDoc.data() : { fullName: "Không xác định" };
-        let wishHTML = '';
-        d.wishes.forEach(w => {
-          wishHTML += `<li class="text-sm">Nguyện vọng ${w.order}: Trường ${w.uniId} - Ngành ${w.majorId} (Tổ hợp: ${w.comboId})</li>`;
+
+      const btn = document.getElementById('saveStudentEditBtn');
+      btn.disabled = true;
+      btn.innerText = "Đang lưu...";
+
+      // Thiết lập cấu trúc dữ liệu cập nhật
+      const updatePayload = {
+        fullName: newName,
+        password: newPass,
+        class: newClass,
+        studentId: newStudentId,
+        phone: newPhone,
+        dob: newDob,
+        department: newDept
+      };
+
+      try {
+        if (oldUser === newUser) {
+          // Cập nhật trực tiếp khi giữ nguyên tên tài khoản
+          await db.collection("users").doc(oldUser).update(updatePayload);
+        } else {
+          // Thay đổi tên tài khoản (Cần thực hiện tạo mới bản ghi liên kết và xóa bản ghi cũ)
+          const checkUser = await db.collection("users").doc(newUser).get();
+          if (checkUser.exists) {
+            alert("Tên tài khoản (Username) mới đã tồn tại trên hệ thống. Vui lòng chọn tên khác.");
+            btn.disabled = false;
+            btn.innerText = "Xác nhận";
+            return;
+          }
+
+          const [userDoc, wishDoc, comboDoc, formsSnap] = await Promise.all([
+            db.collection("users").doc(oldUser).get(),
+            db.collection("wishes").doc(oldUser).get(),
+            db.collection("student_combos").doc(oldUser).get(),
+            db.collection("saved_forms").where("studentUid", "==", oldUser).get()
+          ]);
+
+          const batch = db.batch();
+
+          // Thiết lập bản ghi người dùng mới chứa thông tin cập nhật
+          const userData = { ...userDoc.data(), ...updatePayload, username: newUser };
+          batch.set(db.collection("users").doc(newUser), userData);
+          batch.delete(db.collection("users").doc(oldUser));
+
+          // Di chuyển liên kết danh sách nguyện vọng hiện hành
+          if (wishDoc.exists) {
+            batch.set(db.collection("wishes").doc(newUser), wishDoc.data());
+            batch.delete(db.collection("wishes").doc(oldUser));
+          }
+
+          // Di chuyển liên kết tổ hợp xét tuyển đã chọn
+          if (comboDoc.exists) {
+            batch.set(db.collection("student_combos").doc(newUser), comboDoc.data());
+            batch.delete(db.collection("student_combos").doc(oldUser));
+          }
+
+          // Đồng bộ lại khóa studentUid trong bộ sưu tập saved_forms
+          formsSnap.forEach(doc => {
+            batch.update(doc.ref, { studentUid: newUser });
+          });
+
+          await batch.commit();
+        }
+
+        alert("Cập nhật toàn bộ thông tin học sinh thành công!");
+        closePopup('studentEditPopup');
+        loadStudents();
+      } catch (error) {
+        alert("Đã xảy ra lỗi khi cập nhật thông tin: " + error.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "Xác nhận";
+      }
+    }
+    // --- Tab 6: Quản lý Đăng ký NV (Khắc phục lỗi truy vấn mạng lồng nhau) ---
+    async function loadWishesMonitor() {
+      const container = document.getElementById('wishesMonitorList');
+      container.innerHTML = '<p class="text-gray-500 text-center">Đang nạp dữ liệu nguyện vọng...</p>';
+      
+      try {
+        // Tối ưu hóa: Lấy dữ liệu gộp của cả nguyện vọng và danh sách học sinh song song
+        const [wishesSnap, usersSnap] = await Promise.all([
+          db.collection("wishes").get(),
+          db.collection("users").where("role", "==", "student").get()
+        ]);
+
+        if (wishesSnap.empty) {
+          container.innerHTML = '<p class="text-gray-500 text-center">Chưa có học sinh nào đăng ký nguyện vọng.</p>';
+          return;
+        }
+
+        // Tạo bảng tra cứu họ và tên từ dữ liệu người dùng trong bộ nhớ tạm
+        const usersMap = {};
+        usersSnap.forEach(doc => {
+          usersMap[doc.id] = doc.data().fullName;
         });
-        container.innerHTML += `
-          <div class="border p-4 rounded bg-gray-50">
-            <h4 class="font-bold text-blue-800">${u.fullName} (${doc.id})</h4>
-            <ul class="list-disc pl-5 mt-2 space-y-1">${wishHTML}</ul>
-          </div>
-        `;
+
+        let htmlBuffer = '';
+        wishesSnap.forEach(doc => {
+          const d = doc.data();
+          const studentName = usersMap[doc.id] || "Không xác định";
+          let wishHTML = '';
+          
+          if (d.wishes && d.wishes.length > 0) {
+            d.wishes.forEach(w => {
+              wishHTML += `
+                <li class="text-xs text-gray-700 leading-relaxed">
+                  <span class="font-semibold text-gray-900">Nguyện vọng ${escapeHTML(w.order)}:</span> 
+                  Trường <span class="font-mono text-blue-700">${escapeHTML(w.uniId)}</span> - 
+                  Ngành <span class="font-mono text-blue-700">${escapeHTML(w.majorId)}</span> 
+                  (Tổ hợp: <span class="font-mono">${escapeHTML(w.comboId)}</span>)
+                </li>`;
+            });
+          } else {
+            wishHTML = `<li class="text-xs text-gray-400 italic">Chưa đăng ký các nguyện vọng cụ thể</li>`;
+          }
+
+          htmlBuffer += `
+            <div class="border p-4 rounded bg-gray-50 shadow-sm transition hover:shadow-md">
+              <h4 class="font-bold text-blue-800 text-sm">${escapeHTML(studentName)} (${escapeHTML(doc.id)})</h4>
+              <ul class="list-disc pl-5 mt-2 space-y-1.5">${wishHTML}</ul>
+            </div>
+          `;
+        });
+        container.innerHTML = htmlBuffer;
+      } catch (error) {
+        console.error("Lỗi khi tải theo dõi đăng ký:", error);
+        container.innerHTML = '<p class="text-red-500 text-center">Lỗi khi tải dữ liệu từ cơ sở dữ liệu.</p>';
       }
     }
 
@@ -630,164 +952,287 @@ function importExcel(type, inputElement) {
         alert("Vui lòng điền đủ tên tài khoản và mật khẩu mới.");
         return;
       }
-      const ref = db.collection("users").doc(username);
-      const doc = await ref.get();
-      if(doc.exists) {
-        await ref.update({ password: newPass });
-        alert("Cập nhật mật khẩu thành công!");
-      } else {
-        alert("Không tìm thấy học sinh này.");
+      try {
+        const ref = db.collection("users").doc(username);
+        const doc = await ref.get();
+        if(doc.exists) {
+          await ref.update({ password: newPass });
+          alert("Cập nhật mật khẩu thành công!");
+          document.getElementById('resetUserSearch').value = '';
+          document.getElementById('newStudentPass').value = '';
+        } else {
+          alert("Không tìm thấy thông tin tài khoản học sinh.");
+        }
+      } catch (error) {
+        alert("Có lỗi xảy ra: " + error.message);
       }
     }
 
     // --- Tab 8: Quản lý cấu hình ---
-async function loadSystemSettings() {
-  try {
-    const doc = await db.collection("settings").doc("global").get();
-    if (doc.exists) {
-      const d = doc.data();
-      
-      // Kiểm tra an toàn sự tồn tại của phần tử trước khi gán giá trị
-      if (document.getElementById("configExamDate")) {
-        document.getElementById("configExamDate").value = d.examDate || "";
-      }
-      if (document.getElementById("configMaxWishes")) {
-        document.getElementById("configMaxWishes").value = d.maxWishes || 20;
-      }
-      if (document.getElementById("configLockWishes")) {
-        document.getElementById("configLockWishes").checked = d.lockWishes || false;
+    async function loadSystemSettings() {
+      try {
+        const doc = await db.collection("settings").doc("global").get();
+        if (doc.exists) {
+          const d = doc.data();
+          const configDateEl = document.getElementById("configExamDate");
+          const configMaxWishesEl = document.getElementById("configMaxWishes");
+          const configLockWishesEl = document.getElementById("configLockWishes");
+
+          if (configDateEl) configDateEl.value = d.examDate || "";
+          if (configMaxWishesEl) configMaxWishesEl.value = d.maxWishes || 20;
+          if (configLockWishesEl) configLockWishesEl.checked = d.lockWishes || false;
+        }
+      } catch (error) {
+        console.error("Lỗi khi tải cấu hình hệ thống:", error);
       }
     }
-  } catch (error) {
-    console.error("Lỗi khi tải cấu hình:", error);
-  }
-}
+
     async function saveSystemSettings() {
-  try {
-    const examDate = document.getElementById("configExamDate").value;
-    const maxWishes = parseInt(document.getElementById("configMaxWishes").value) || 20;
-    const lockWishes = document.getElementById("configLockWishes") ? document.getElementById("configLockWishes").checked : false;
+      try {
+        const examDate = document.getElementById("configExamDate").value;
+        const maxWishes = parseInt(document.getElementById("configMaxWishes").value) || 20;
+        const configLockEl = document.getElementById("configLockWishes");
+        const lockWishes = configLockEl ? configLockEl.checked : false;
 
-    // Chỉ lưu các thông số đang hiện hữu trên giao diện
-    const data = {
-      examDate: examDate,
-      maxWishes: maxWishes,
-      lockWishes: lockWishes
-    };
+        const data = {
+          examDate: examDate,
+          maxWishes: maxWishes,
+          lockWishes: lockWishes
+        };
 
-    await db.collection("settings").doc("global").set(data);
-    alert("Cấu hình hệ thống đã được cập nhật thành công.");
-  } catch (error) {
-    console.error("Lỗi khi lưu cấu hình:", error);
-    alert("Đã xảy ra lỗi khi lưu cấu hình. Vui lòng kiểm tra lại kết nối cơ sở dữ liệu.");
-  }
-}
-// Thêm hàm load dữ liệu trường vào form tạo luật
-async function loadRuleSetup() {
-  const unis = await db.collection("universities").get();
-  const select = document.getElementById("ruleUniId");
-  select.innerHTML = '<option value="">-- Chọn trường --</option>';
-  unis.forEach(doc => {
-    select.innerHTML += `<option value="${doc.id}">${doc.data().name} (${doc.id})</option>`;
-  });
-  loadWishRulesList();
-}
+        await db.collection("settings").doc("global").set(data);
+        alert("Cấu hình hệ thống đã được cập nhật thành công.");
+      } catch (error) {
+        console.error("Lỗi khi lưu cấu hình:", error);
+        alert("Đã xảy ra lỗi khi lưu cấu hình.");
+      }
+    }
 
-// Load danh sách ngành tương ứng với trường được chọn
-async function loadRuleMajors() {
-  const uniId = document.getElementById("ruleUniId").value;
-  const select = document.getElementById("ruleMajorIds");
-  select.innerHTML = '';
-  if(!uniId) return;
-  const snap = await db.collection("majors").where("uniId", "==", uniId).get();
-  snap.forEach(doc => {
-    select.innerHTML += `<option value="${doc.data().id}">${doc.data().name} (${doc.data().id})</option>`;
-  });
-}
+    function loadRuleSetup() {
+      loadWishRulesList();
+    }
 
-// Lưu luật mới vào Firestore collection "wish_rules"
-async function createWishRule() {
-  const uniId = document.getElementById("ruleUniId").value;
-  const selectedMajors = Array.from(document.getElementById("ruleMajorIds").selectedOptions).map(o => o.value);
-  const min = parseInt(document.getElementById("ruleOrderMin").value);
-  const max = parseInt(document.getElementById("ruleOrderMax").value);
+    // Tìm kiếm ngành học đa trường (Kết hợp lưu đệm bộ nhớ đệm chống lãng phí cuộc gọi Firestore)
+    async function searchRuleMajors() {
+      const query = document.getElementById("ruleMajorSearchInput").value.toLowerCase().trim();
+      const container = document.getElementById("ruleMajorsSearchResults");
+      const actionsDiv = document.getElementById("ruleSelectAllActions");
+      if (!query) {
+        alert("Vui lòng nhập từ khóa để tìm kiếm.");
+        return;
+      }
 
-  if(!uniId || selectedMajors.length === 0 || isNaN(min) || isNaN(max)) {
-    alert("Vui lòng điền đầy đủ các thông tin của luật giới hạn.");
-    return;
-  }
+      container.innerHTML = `<p class="text-gray-500 italic">Đang tìm kiếm...</p>`;
+      actionsDiv.classList.add("hidden");
+      
+      try {
+        // Tải danh sách trường một lần duy nhất nếu chưa có
+        if (!allUnis || allUnis.length === 0) {
+          const uniSnap = await db.collection("universities").get();
+          allUnis = [];
+          uniSnap.forEach(doc => allUnis.push(doc.data()));
+        }
+        const uniMap = new Map(allUnis.map(u => [u.id, u.name]));
 
-  const ruleId = `${uniId}_rules_${Date.now()}`;
-  await db.collection("wish_rules").doc(ruleId).set({
-    id: ruleId,
-    uniId: uniId,
-    majors: selectedMajors,
-    orderMin: min,
-    orderMax: max
-  });
+        // Lưu đệm thông tin cấu hình ngành học ngăn truy cập máy chủ trùng lặp
+        if (ruleMajorsCache.length === 0) {
+          const majorsSnap = await db.collection("majors").get();
+          ruleMajorsCache = [];
+          majorsSnap.forEach(doc => ruleMajorsCache.push(doc.data()));
+        }
 
-  alert("Đã lưu luật giới hạn mới.");
-  loadWishRulesList();
-}
+        const matchedMajors = ruleMajorsCache.filter(m => 
+          m.id.toLowerCase().includes(query) || 
+          m.name.toLowerCase().includes(query)
+        );
 
-// Hiển thị danh sách các luật đang hoạt động
-async function loadWishRulesList() {
-  const container = document.getElementById("wishRulesList");
-  container.innerHTML = "";
-  const snap = await db.collection("wish_rules").get();
-  snap.forEach(doc => {
-    const r = doc.data();
-    container.innerHTML += `
-      <div class="bg-white p-2 rounded border text-xs flex justify-between items-center">
-        <div>
-          <strong>Trường ${r.uniId}</strong> - Ngành: [${r.majors.join(', ')}] 
-          <span class="text-red-600">(Chỉ được đặt ở NV từ ${r.orderMin} đến ${r.orderMax})</span>
-        </div>
-        <button onclick="deleteWishRule('${r.id}')" class="text-red-500 hover:underline ml-2">Xóa</button>
-      </div>
-    `;
-  });
-}
+        if (matchedMajors.length === 0) {
+          container.innerHTML = `<p class="text-red-500 italic">Không tìm thấy ngành học nào trùng khớp.</p>`;
+          return;
+        }
+        
+        actionsDiv.classList.remove("hidden");
+        let htmlBuffer = '';
+        
+        matchedMajors.forEach(m => {
+          const uName = uniMap.get(m.uniId) || "Trường Đại học khác";
+          htmlBuffer += `
+            <label class="flex items-start space-x-2 p-1.5 hover:bg-gray-100 rounded cursor-pointer border-b border-gray-100 pb-2">
+              <input type="checkbox" value="${escapeHTML(m.uniId)}|${escapeHTML(m.id)}" class="rule-major-chk w-4 h-4 rounded text-blue-600 mt-0.5 shrink-0">
+              <div class="leading-tight">
+                <p class="font-bold text-blue-800 text-[11px]">[${escapeHTML(m.uniId)}] ${escapeHTML(uName)}</p>
+                <p class="font-semibold text-gray-800 text-xs">${escapeHTML(m.name)} (${escapeHTML(m.id)})</p>
+              </div>
+            </label>
+          `;
+        });
+        container.innerHTML = htmlBuffer;
 
-async function deleteWishRule(id) {
-  if(confirm("Xóa luật giới hạn này?")) {
-    await db.collection("wish_rules").doc(id).delete();
-    loadWishRulesList();
-  }
-}
+      } catch (error) {
+        console.error("Lỗi khi tìm kiếm ngành học:", error);
+        container.innerHTML = `<p class="text-red-500 italic">Có lỗi xảy ra trong quá trình nạp thông tin.</p>`;
+        actionsDiv.classList.add("hidden");
+      }
+    }
 
-// Đồng thời, cập nhật hàm switchTab để chạy khởi tạo khi mở tab 'display'
-// Tìm hàm switchTab(tabId) cũ và bổ sung điều kiện gọi hàm:
-if (tabId === 'display') {
-  loadSystemSettings();
-  loadRuleSetup(); // <--- Thêm dòng này
-}
+    // Tạo và áp dụng luật (Tự động gom nhóm trường hạn chế số lượng ghi Firestore)
+    async function createWishRule() {
+      const checkedBoxes = Array.from(document.querySelectorAll('.rule-major-chk:checked'));
+      const min = parseInt(document.getElementById("ruleOrderMin").value);
+      const max = parseInt(document.getElementById("ruleOrderMax").value);
+
+      if (checkedBoxes.length === 0) {
+        alert("Vui lòng tìm kiếm và tích chọn tối thiểu một ngành học.");
+        return;
+      }
+      if (isNaN(min) || isNaN(max) || min < 1 || max < min) {
+        alert("Vui lòng cấu hình phạm vi thứ tự nguyện vọng hợp lệ.");
+        return;
+      }
+
+      // Phân nhóm ngành học theo mã trường
+      const groupedByUni = {};
+      checkedBoxes.forEach(chk => {
+        const [uniId, majorId] = chk.value.split('|');
+        if (!groupedByUni[uniId]) {
+          groupedByUni[uniId] = [];
+        }
+        groupedByUni[uniId].push(majorId);
+      });
+
+      try {
+        const writePromises = [];
+        for (const uniId of Object.keys(groupedByUni)) {
+          const ruleId = `${uniId}_rules_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+          const docRef = db.collection("wish_rules").doc(ruleId);
+          writePromises.push(docRef.set({
+            id: ruleId,
+            uniId: uniId,
+            majors: groupedByUni[uniId],
+            orderMin: min,
+            orderMax: max
+          }));
+        }
+
+        await Promise.all(writePromises);
+        alert("Đã cấu hình luật giới hạn mới thành công.");
+        
+        // Reset trường nhập dữ liệu cấu hình
+        document.getElementById("ruleMajorSearchInput").value = "";
+        document.getElementById("ruleMajorsSearchResults").innerHTML = `<p class="text-gray-400 italic">Vui lòng nhập từ khóa và nhấn "Tìm kiếm ngành"...</p>`;
+        document.getElementById("ruleOrderMin").value = "";
+        document.getElementById("ruleOrderMax").value = "";
+        document.getElementById("ruleSelectAllActions").classList.add("hidden");
+
+        loadWishRulesList();
+
+      } catch (error) {
+        console.error("Lỗi lưu trữ luật giới hạn:", error);
+        alert("Không thể lưu cấu hình quy định mới.");
+      }
+    }
+
+    // Hiển thị danh sách các luật đang hoạt động
+    async function loadWishRulesList() {
+      const container = document.getElementById("wishRulesList");
+      container.innerHTML = "<p class='text-xs text-gray-400 italic'>Đang nạp dữ liệu luật...</p>";
+      
+      try {
+        const snap = await db.collection("wish_rules").get();
+        if (snap.empty) {
+          container.innerHTML = `<p class="text-gray-400 italic text-[11px]">Hiện không có cấu hình giới hạn nào.</p>`;
+          return;
+        }
+        
+        let htmlBuffer = '';
+        snap.forEach(doc => {
+          const r = doc.data();
+          htmlBuffer += `
+            <div class="bg-white p-2 rounded border text-[11px] flex justify-between items-center space-x-2 shadow-sm hover:shadow transition">
+              <div class="leading-tight">
+                <span class="font-bold text-blue-800">[Trường ${escapeHTML(r.uniId)}]</span> Ngành: <span class="font-semibold">${escapeHTML(r.majors.join(', '))}</span> 
+                <p class="text-red-600 font-medium mt-0.5">Khoảng giới hạn: [${escapeHTML(String(r.orderMin))} -> ${escapeHTML(String(r.orderMax))}]</p>
+              </div>
+              <button onclick="deleteWishRule('${escapeHTML(r.id)}')" class="text-red-500 hover:underline shrink-0 font-bold">Xóa</button>
+            </div>
+          `;
+        });
+        container.innerHTML = htmlBuffer;
+      } catch (error) {
+        console.error("Lỗi nạp danh sách luật:", error);
+        container.innerHTML = `<p class="text-red-500 italic text-[11px]">Không thể nạp dữ liệu cấu hình.</p>`;
+      }
+    }
+
+    async function deleteWishRule(id) {
+      if(confirm("Bạn có chắc chắn muốn xóa luật giới hạn này?")) {
+        try {
+          await db.collection("wish_rules").doc(id).delete();
+          loadWishRulesList();
+        } catch (error) {
+          alert("Lỗi khi thực hiện xóa quy tắc: " + error.message);
+        }
+      }
+    }
+
+    function toggleSelectAllRuleMajors(isChecked) {
+      const checkboxes = document.querySelectorAll('.rule-major-chk');
+      checkboxes.forEach(chk => {
+        chk.checked = isChecked;
+      });
+    }
+
+    // Khởi tạo tab mặc định khi mở trang
+    window.addEventListener('DOMContentLoaded', () => {
+      loadDashboard();
+    });
   </script>
-<!-- Popup Quá Trình Xử Lý Excel (Hỗ trợ báo lỗi chi tiết) -->
-<div id="progressPopup" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
-  <div class="bg-white p-6 rounded-lg shadow-xl max-w-md w-full text-center space-y-4">
-    <h4 id="progressTitle" class="text-base font-bold text-gray-800">Đang nạp dữ liệu từ Excel</h4>
-    <p class="text-xs text-gray-500 leading-relaxed">Hệ thống đang đồng bộ thông tin từng dòng vào cơ sở dữ liệu. Vui lòng giữ kết nối.</p>
-    
-    <!-- Thanh tiến trình (Progress Bar) -->
-    <div class="w-full bg-gray-200 rounded-full h-3">
-      <div id="progressBarFill" class="bg-blue-600 h-3 rounded-full transition-all duration-150" style="width: 0%"></div>
+<!-- Popup sửa thông tin Học sinh toàn diện -->
+  <div id="studentEditPopup" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-40">
+    <div class="bg-white p-6 rounded shadow max-w-lg w-full">
+      <h3 class="font-bold mb-3 text-lg text-gray-800 border-b pb-2">Cập Nhật Thông Tin Học Sinh</h3>
+      <input type="hidden" id="editOldUsername">
+      
+      <div class="grid grid-cols-2 gap-3 mb-4">
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Họ và tên học sinh</label>
+          <input type="text" id="editStudentFullName" class="w-full border p-2 rounded text-sm outline-none focus:ring-1 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Tên tài khoản (Username)</label>
+          <input type="text" id="editStudentUsername" class="w-full border p-2 rounded text-sm font-mono outline-none focus:ring-1 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Mật khẩu</label>
+          <input type="text" id="editStudentPassword" class="w-full border p-2 rounded text-sm font-mono outline-none focus:ring-1 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Lớp học</label>
+          <input type="text" id="editStudentClass" class="w-full border p-2 rounded text-sm outline-none focus:ring-1 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Mã học sinh</label>
+          <input type="text" id="editStudentId" class="w-full border p-2 rounded text-sm font-semibold outline-none focus:ring-1 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Số điện thoại</label>
+          <input type="text" id="editStudentPhone" class="w-full border p-2 rounded text-sm outline-none focus:ring-1 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Ngày sinh</label>
+          <input type="text" id="editStudentDob" class="w-full border p-2 rounded text-sm outline-none focus:ring-1 focus:ring-blue-500" placeholder="Ví dụ: 20/10/2006">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Sở GD&ĐT</label>
+          <input type="text" id="editStudentDept" class="w-full border p-2 rounded text-sm outline-none focus:ring-1 focus:ring-blue-500">
+        </div>
+      </div>
+      
+      <div class="flex justify-end space-x-2 border-t pt-3">
+        <button onclick="closePopup('studentEditPopup')" class="bg-gray-300 px-3 py-1.5 rounded hover:bg-gray-400 text-sm transition">Hủy</button>
+        <button id="saveStudentEditBtn" onclick="saveStudentEdit()" class="bg-blue-600 text-white px-3 py-1.5 rounded hover:bg-blue-700 text-sm transition">Xác nhận</button>
+      </div>
     </div>
-    
-    <!-- Trạng thái cập nhật -->
-    <p id="progressStatusText" class="text-xs font-semibold text-blue-600">Đang chuẩn bị tệp tin...</p>
-
-    <!-- Khung hiển thị chi tiết lỗi từng dòng (Chỉ xuất hiện khi có lỗi) -->
-    <div id="excelLogContainer" class="hidden text-left bg-red-50 p-3 rounded border border-red-200 text-[11px] text-red-700 max-h-40 overflow-y-auto space-y-1 font-mono">
-      <p class="font-bold border-b border-red-200 pb-1 mb-1">Nhật ký lỗi chi tiết:</p>
-      <div id="excelErrorLogList" class="space-y-1"></div>
-    </div>
-    
-    <!-- Nút đóng -->
-    <button id="progressCloseBtn" onclick="closePopup('progressPopup')" class="hidden w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded text-xs transition">
-      Đóng hộp thoại
-    </button>
   </div>
-</div>
 </body>
 </html>
