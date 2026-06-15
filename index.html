@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng Nhập - Hệ Thống Nguyện Vọng</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="config.js"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+
+  <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+    <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">CỔNG ĐĂNG KÝ NGUYỆN VỌNG</h2>
+
+    <!-- Form Đăng nhập -->
+    <div id="loginFormSection">
+      <div class="mb-4">
+        <label class="block text-gray-700 text-sm font-bold mb-2">Tên đăng nhập (Username)</label>
+        <input type="text" id="loginUser" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div class="mb-6">
+        <label class="block text-gray-700 text-sm font-bold mb-2">Mật khẩu</label>
+        <input type="password" id="loginPass" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <button onclick="handleLogin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-4">
+        Đăng nhập
+      </button>
+      <div class="flex justify-between text-sm text-blue-500">
+        <button onclick="toggleSection('registerSection')" class="hover:underline">Đăng ký tài khoản mới</button>
+        <button onclick="promptAdminLogin()" class="hover:underline text-red-500">Đăng nhập Admin</button>
+      </div>
+    </div>
+
+    <!-- Form Đăng ký -->
+    <div id="registerSection" class="hidden">
+      <h3 class="text-lg font-bold mb-4 text-gray-800">Đăng Ký Tài Khoản Học Sinh</h3>
+      <div class="space-y-3 max-h-[400px] overflow-y-auto pr-2">
+        <!-- Bắt buộc -->
+        <div>
+          <label class="block text-xs font-bold text-gray-700">Họ và tên *</label>
+          <input type="text" id="regName" required class="w-full px-2 py-1 border rounded text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-700">Số điện thoại * (Duy nhất)</label>
+          <input type="text" id="regPhone" required class="w-full px-2 py-1 border rounded text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-700">Lớp *</label>
+          <input type="text" id="regClass" required class="w-full px-2 py-1 border rounded text-sm">
+        </div>
+
+        <!-- Không bắt buộc -->
+        <div>
+          <label class="block text-xs text-gray-600">Email</label>
+          <input type="email" id="regEmail" class="w-full px-2 py-1 border rounded text-sm">
+        </div>
+        <div>
+          <label class="block text-xs text-gray-600">Số định danh cá nhân (CCCD)</label>
+          <input type="text" id="regIdCard" class="w-full px-2 py-1 border rounded text-sm">
+        </div>
+        <div>
+          <label class="block text-xs text-gray-600">Sở Giáo dục và Đào tạo</label>
+          <select id="regDeptSelect" onchange="handleDeptChange()" class="w-full px-2 py-1 border rounded text-sm">
+            <option value="Sở Giáo dục và Đào tạo Thành phố Hồ Chí Minh">Sở GD&ĐT TP. Hồ Chí Minh</option>
+            <option value="Sở Giáo dục và Đào tạo Thành phố Hà Nội">Sở GD&ĐT Hà Nội</option>
+            <option value="Sở Giáo dục và Đào tạo Tỉnh Nghệ An">Sở GD&ĐT Nghệ An</option>
+            <option value="Sở Giáo dục và Đào tạo Thành phố Đà Nẵng">Sở GD&ĐT Đà Nẵng</option>
+            <option value="Sở Giáo dục và Đào tạo Thành phố Cần Thơ">Sở GD&ĐT Cần Thơ</option>
+            <option value="khac">Khác (Tự nhập)</option>
+          </select>
+          <input type="text" id="regDeptCustom" placeholder="Nhập tên Sở GD&ĐT..." class="hidden mt-1 w-full px-2 py-1 border rounded text-sm">
+        </div>
+        <div>
+          <label class="block text-xs text-gray-600">Xã / Phường</label>
+          <input type="text" id="regWard" class="w-full px-2 py-1 border rounded text-sm">
+        </div>
+        <div>
+          <label class="block text-xs text-gray-600">Khu phố / Ấp</label>
+          <input type="text" id="regHamlet" class="w-full px-2 py-1 border rounded text-sm">
+        </div>
+        <div>
+          <label class="block text-xs text-gray-600">Ngày / Tháng / Năm sinh</label>
+          <input type="date" id="regDob" class="w-full px-2 py-1 border rounded text-sm">
+        </div>
+        <div>
+          <label class="block text-xs text-gray-600">Mã học sinh</label>
+          <input type="text" id="regStudentId" class="w-full px-2 py-1 border rounded text-sm">
+        </div>
+        <div>
+          <label class="block text-xs text-gray-600">Ảnh đại diện (Link ảnh)</label>
+          <input type="text" id="regAvatar" placeholder="http://..." class="w-full px-2 py-1 border rounded text-sm">
+        </div>
+      </div>
+
+      <div class="mt-4 space-y-2">
+        <button onclick="handleRegister()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 rounded text-sm">
+          Đăng ký ngay
+        </button>
+        <button onclick="toggleSection('loginFormSection')" class="w-full bg-gray-300 hover:bg-gray-400 text-gray-800 py-1 rounded text-sm">
+          Quay lại Đăng nhập
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Popup hiển thị tài khoản cấp mới -->
+  <div id="credentialModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white p-6 rounded-lg max-w-sm w-full text-center">
+      <h4 class="text-lg font-bold text-green-600 mb-2">Đăng Ký Thành Công!</h4>
+      <p class="text-sm text-gray-600 mb-4">Vui lòng lưu lại thông tin đăng nhập dưới đây:</p>
+      <div class="bg-gray-100 p-3 rounded mb-4 text-left">
+        <p class="text-sm"><strong>Tên đăng nhập:</strong> <span id="newUsername" class="text-blue-600 font-mono"></span></p>
+        <p class="text-sm"><strong>Mật khẩu:</strong> <span id="newPassword" class="text-blue-600 font-mono"></span></p>
+      </div>
+      <button onclick="closeCredentialModal()" class="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700">
+        Đã lưu và Quay lại đăng nhập
+      </button>
+    </div>
+  </div>
+
+  <script>
+    function toggleSection(sectionId) {
+      document.getElementById('loginFormSection').classList.add('hidden');
+      document.getElementById('registerSection').classList.add('hidden');
+      document.getElementById(sectionId).classList.remove('hidden');
+    }
+
+    function handleDeptChange() {
+      const select = document.getElementById('regDeptSelect');
+      const customInput = document.getElementById('regDeptCustom');
+      if (select.value === 'khac') {
+        customInput.classList.remove('hidden');
+      } else {
+        customInput.classList.add('hidden');
+      }
+    }
+
+    // Kiểm tra trùng SĐT và đăng ký
+    async function handleRegister() {
+      const name = document.getElementById('regName').value.trim();
+      const phone = document.getElementById('regPhone').value.trim();
+      const studentClass = document.getElementById('regClass').value.trim();
+
+      if (!name || !phone || !studentClass) {
+        alert("Vui lòng nhập đầy đủ các thông tin bắt buộc.");
+        return;
+      }
+
+      try {
+        // Kiểm tra SĐT duy nhất
+        const snapshot = await db.collection("users").where("phone", "==", phone).get();
+        if (!snapshot.empty) {
+          alert("Số điện thoại này đã được đăng ký trên hệ thống.");
+          return;
+        }
+
+        // Tạo username và password tự động
+        const username = "TS" + phone;
+        const password = Math.floor(100000 + Math.random() * 900000).toString(); // 6 chữ số ngẫu nhiên
+
+        let dept = document.getElementById('regDeptSelect').value;
+        if (dept === 'khac') {
+          dept = document.getElementById('regDeptCustom').value.trim() || "Chưa xác định";
+        }
+
+        const userData = {
+          username: username,
+          password: password,
+          fullName: name,
+          phone: phone,
+          class: studentClass,
+          email: document.getElementById('regEmail').value.trim(),
+          idCard: document.getElementById('regIdCard').value.trim(),
+          department: dept,
+          ward: document.getElementById('regWard').value.trim(),
+          hamlet: document.getElementById('regHamlet').value.trim(),
+          dob: document.getElementById('regDob').value,
+          studentId: document.getElementById('regStudentId').value.trim(),
+          avatar: document.getElementById('regAvatar').value.trim() || "https://via.placeholder.com/150",
+          role: "student"
+        };
+
+        await db.collection("users").doc(username).set(userData);
+
+        document.getElementById('newUsername').innerText = username;
+        document.getElementById('newPassword').innerText = password;
+        document.getElementById('credentialModal').classList.remove('hidden');
+
+      } catch (error) {
+        console.error("Lỗi đăng ký: ", error);
+        alert("Có lỗi xảy ra trong quá trình đăng ký.");
+      }
+    }
+
+    function closeCredentialModal() {
+      document.getElementById('credentialModal').classList.add('hidden');
+      toggleSection('loginFormSection');
+    }
+
+    // Đăng nhập học sinh và phân luồng thiết bị
+    async function handleLogin() {
+      const user = document.getElementById('loginUser').value.trim();
+      const pass = document.getElementById('loginPass').value.trim();
+
+      if (!user || !pass) {
+        alert("Vui lòng điền đủ thông tin.");
+        return;
+      }
+
+      try {
+        const doc = await db.collection("users").doc(user).get();
+        if (doc.exists && doc.data().password === pass) {
+          const userData = doc.data();
+          localStorage.setItem("currentUser", JSON.stringify(userData));
+          routeUser('student');
+        } else {
+          alert("Thông tin đăng nhập không chính xác.");
+        }
+      } catch (e) {
+        alert("Lỗi kết nối hệ thống.");
+      }
+    }
+
+    // Đăng nhập Admin qua mã hệ thống
+    function promptAdminLogin() {
+      const password = prompt("Nhập mật khẩu Admin:");
+      if (password === "thitotnghiep27") {
+        localStorage.setItem("adminAuth", "true");
+        routeUser('admin');
+      } else if (password !== null) {
+        alert("Mật khẩu Admin không đúng.");
+      }
+    }
+
+    // Phân luồng giao diện dựa trên loại thiết bị và vai trò
+    function routeUser(role) {
+      if (role === 'admin') {
+        window.location.href = "admin.html";
+      } else {
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+        if (isMobile) {
+          window.location.href = "student_mobile.html";
+        } else {
+          window.location.href = "student_pc.html";
+        }
+      }
+    }
+  </script>
+</body>
+</html>

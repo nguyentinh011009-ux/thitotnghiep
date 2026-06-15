@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cổng Thí Sinh - Giao diện Di động</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="config.js"></script>
+</head>
+<body class="bg-gray-100 font-sans flex flex-col min-h-screen pb-16">
+
+  <!-- Header Di Động -->
+  <header class="bg-blue-600 text-white p-3 flex justify-between items-center sticky top-0 z-50">
+    <div class="flex items-center space-x-2">
+      <img id="mUserAvatar" src="" class="w-8 h-8 rounded-full border border-white" alt="Avatar">
+      <div class="text-xs">
+        <p class="font-bold leading-none" id="mUserDisplayName">Đang tải...</p>
+        <p class="text-[10px] text-blue-200" id="mUserClass">Lớp: Đang tải...</p>
+      </div>
+    </div>
+    <p class="text-xs font-semibold" id="mCountdown">Đang tính...</p>
+  </header>
+
+  <!-- Content chính của từng tab -->
+  <div class="p-4 flex-1">
+    
+    <!-- Tab 1: Tổng quan -->
+    <section id="mTab-overview" class="m-tab-content space-y-3">
+      <h2 class="font-bold text-lg text-gray-800">Thông tin cá nhân</h2>
+      <div class="bg-white p-3 rounded shadow space-y-2 text-sm">
+        <p><strong>Ngày sinh:</strong> <span id="mDob"></span></p>
+        <p><strong>Số ĐT:</strong> <span id="mPhone"></span></p>
+        <p><strong>Sở GD&ĐT:</strong> <span id="mDept"></span></p>
+        <p><strong>Xã/Phường:</strong> <span id="mWard"></span></p>
+      </div>
+    </section>
+
+<!-- Tab 2: Đăng ký tổ hợp (Mobile) -->
+<section id="mTab-combos" class="m-tab-content hidden space-y-3 pb-6">
+  <h2 class="font-bold text-lg text-gray-800">Chọn Tổ hợp Môn</h2>
+  
+  <div class="bg-white p-3 rounded shadow space-y-3 text-xs">
+    <p class="text-xs text-red-500 font-semibold">* Bắt buộc: Toán, Ngữ văn</p>
+    <div class="grid grid-cols-2 gap-2" id="mSubjectCheckboxContainer"></div>
+    <button onclick="mCheckCombos()" class="w-full bg-blue-600 text-white py-2 rounded font-semibold">
+      1. Tự động ghép tổ hợp
+    </button>
+    
+    <!-- Hiển thị kết quả tự động khớp -->
+    <div id="mComboResult" class="hidden border-t pt-2 space-y-2">
+      <p class="font-bold text-green-700">Tổ hợp tự động tìm thấy (Chọn để lưu):</p>
+      <div id="mComboList" class="space-y-1 max-h-32 overflow-y-auto"></div>
+    </div>
+  </div>
+
+  <!-- Tìm kiếm bổ sung thủ công -->
+  <div class="bg-white p-3 rounded shadow space-y-2 text-xs">
+    <p class="font-bold text-gray-700">Tìm & Thêm tổ hợp thủ công</p>
+    <input type="text" id="mSearchComboInput" oninput="mFilterCombos()" placeholder="Tìm kiếm tổ hợp (A01, Toán...)" class="w-full border p-1 rounded">
+    <select id="mManualComboSelect" class="w-full border p-1 rounded text-xs" size="4"></select>
+    <button onclick="mAddManualCombo()" class="w-full bg-gray-700 text-white py-1.5 rounded font-bold">
+      Thêm tổ hợp thủ công
+    </button>
+  </div>
+
+  <!-- Danh sách tổ hợp quyết định chọn -->
+  <div class="bg-white p-3 rounded shadow space-y-3">
+    <p class="font-bold text-xs text-gray-700">Danh sách đăng ký của bạn:</p>
+    <div id="mSelectedCombosOverview" class="flex flex-wrap gap-1">
+      <span class="text-gray-400 text-xs">Chưa chọn tổ hợp...</span>
+    </div>
+    <button onclick="mConfirmCombos()" class="w-full bg-green-600 text-white py-2 rounded font-bold text-xs">
+      Xác nhận đăng ký tổ hợp
+    </button>
+  </div>
+</section>
+    <!-- Tab 3: Đăng ký nguyện vọng -->
+    <section id="mTab-wishes" class="m-tab-content hidden space-y-3">
+      <h2 class="font-bold text-lg text-gray-800">Cập nhật Nguyện vọng</h2>
+      
+      <div class="bg-white p-3 rounded shadow space-y-2">
+  <p class="text-xs font-bold text-gray-700">Thêm nhanh Nguyện vọng</p>
+  
+  <!-- Lọc & Chọn Trường Mobile -->
+  <div class="space-y-1">
+    <input type="text" id="mWishUniFilter" oninput="mFilterUnis()" placeholder="Tìm nhanh Trường (mã hoặc tên)..." class="w-full border p-1 rounded text-xs focus:ring-1 focus:ring-blue-500 outline-none">
+    <select id="mWishUni" class="w-full border p-1 rounded text-xs" onchange="mLoadWishMajors()"></select>
+  </div>
+  
+  <!-- Lọc & Chọn Ngành Mobile -->
+  <div class="space-y-1">
+    <input type="text" id="mWishMajorFilter" oninput="mFilterMajors()" placeholder="Tìm nhanh Ngành (mã hoặc tên)..." class="w-full border p-1 rounded text-xs focus:ring-1 focus:ring-blue-500 outline-none">
+    <select id="mWishMajor" class="w-full border p-1 rounded text-xs"></select>
+  </div>
+  
+  <button onclick="mAddWish()" class="w-full bg-blue-600 text-white py-1.5 rounded text-xs font-bold hover:bg-blue-700">
+    Thêm Nguyện Vọng
+  </button>
+</div>
+
+      <div class="bg-white p-3 rounded shadow mt-3">
+        <p class="font-bold text-xs mb-2">Thứ tự đã thêm:</p>
+        <div class="space-y-2" id="mWishListContainer"></div>
+        <div class="mt-4 flex space-x-2">
+          <button onclick="printWishes()" class="w-1/2 bg-gray-600 text-white py-2 rounded text-xs">In phiếu</button>
+          <button onclick="saveWishFormToArchive()" class="w-1/2 bg-green-600 text-white py-2 rounded text-xs">Lưu thành phiếu</button>
+        </div>
+      </div>
+    </section>
+<!-- Tab 3: Gợi ý nguyện vọng (Mobile) -->
+<section id="mTab-suggest" class="m-tab-content hidden space-y-3 pb-6">
+  <h2 class="font-bold text-lg text-gray-800">Gợi ý Nguyện vọng</h2>
+  
+  <div class="bg-white p-3 rounded shadow space-y-3 text-xs">
+    <p class="font-bold text-gray-500">Bước 1: Chọn tổ hợp của bạn</p>
+    <div id="mSuggestComboCheckboxes" class="flex flex-wrap gap-1.5"></div>
+    
+    <div class="border-t pt-2 space-y-1">
+      <p class="font-bold text-gray-500">Bước 2: Từ khóa (Tên ngành, Trường...):</p>
+      <input type="text" id="mSuggestSearchInput" placeholder="Nhập từ khóa tìm kiếm..." class="w-full border p-1 rounded text-xs">
+    </div>
+    
+    <button onclick="mSearchSuitableMajors()" class="w-full bg-blue-600 text-white py-2 rounded font-bold text-xs">
+      Tìm ngành phù hợp
+    </button>
+  </div>
+
+  <div class="bg-white p-3 rounded shadow">
+    <p class="font-bold text-xs text-gray-700 mb-2">Kết quả gợi ý:</p>
+    <div id="mSuggestResultsList" class="space-y-2 max-h-80 overflow-y-auto">
+      <p class="text-gray-400 text-xs text-center py-4">Tick chọn tổ hợp và bấm nút để tìm.</p>
+    </div>
+  </div>
+</section>
+    <!-- Tab 4: Phiếu đăng ký & Đổi mật khẩu -->
+    <section id="mTab-forms" class="m-tab-content hidden space-y-3">
+      <h2 class="font-bold text-lg text-gray-800">Phiếu của tôi</h2>
+      <div id="mSavedFormsContainer" class="space-y-2"></div>
+
+      <div class="bg-white p-3 rounded shadow mt-3 space-y-2">
+        <p class="font-semibold text-xs">Đổi mật khẩu bảo mật</p>
+        <input type="password" id="mNewPass" placeholder="Nhập mật khẩu mới..." class="w-full border p-1 text-xs rounded">
+        <button onclick="mChangePassword()" class="bg-red-500 text-white px-3 py-1.5 rounded text-xs w-full">Cập nhật</button>
+      </div>
+
+      <button onclick="studentLogout()" class="w-full bg-gray-500 text-white py-2 rounded text-xs mt-4">Đăng xuất khỏi hệ thống</button>
+    </section>
+
+  </div>
+
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around p-2 text-center text-xs shadow-inner z-50">
+  <button onclick="mSwitchTab('overview')" class="m-nav-btn text-blue-600 font-bold flex flex-col items-center">
+    <span>🏠</span><span>Tổng quan</span>
+  </button>
+  <button onclick="mSwitchTab('combos')" class="m-nav-btn text-gray-500 flex flex-col items-center">
+    <span>📚</span><span>Tổ hợp</span>
+  </button>
+  <!-- NÚT MỚI BỔ SUNG -->
+  <button onclick="mSwitchTab('suggest')" class="m-nav-btn text-gray-500 flex flex-col items-center">
+    <span>💡</span><span>Gợi ý</span>
+  </button>
+  <button onclick="mSwitchTab('wishes')" class="m-nav-btn text-gray-500 flex flex-col items-center">
+    <span>⭐</span><span>Nguyện vọng</span>
+  </button>
+  <button onclick="mSwitchTab('forms')" class="m-nav-btn text-gray-500 flex flex-col items-center">
+    <span>📂</span><span>Phiếu lưu</span>
+  </button>
+</nav>
+  <script>
+    const user = JSON.parse(localStorage.getItem("currentUser"));
+    if(!user) { window.location.href = "index.html"; }
+
+    let globalConfig = { maxWishes: 20, lockWishes: false, rangeMin: 1, rangeMax: 20 };
+    let currentWishes = [];
+    let myCombos = [];
+
+    const extraSubjects = ["Tiếng Anh", "Tiếng Nga", "Tiếng Pháp", "Tiếng Trung Quốc", "Tiếng Đức", "Tiếng Nhật", "Tiếng Hàn", "Lịch sử", "Địa lý", "Vật lý", "Hóa học", "Sinh học", "Giáo dục kinh tế và pháp luật", "Tin học", "Công nghệ Công nghiệp", "Công nghệ Nông nghiệp"];
+
+    async function initMobile() {
+      // Load UI thông tin học sinh
+      document.getElementById('mUserAvatar').src = user.avatar || "https://via.placeholder.com/150";
+      document.getElementById('mUserDisplayName').innerText = user.fullName;
+      document.getElementById('mUserClass').innerText = `Lớp: ${user.class}`;
+      
+      document.getElementById('mDob').innerText = user.dob || "Chưa thiết lập";
+      document.getElementById('mPhone').innerText = user.phone;
+      document.getElementById('mDept').innerText = user.department || "Chưa thiết lập";
+      document.getElementById('mWard').innerText = user.ward || "Chưa thiết lập";
+
+      // Khởi tạo các môn bổ sung
+      const container = document.getElementById('mSubjectCheckboxContainer');
+      extraSubjects.forEach((sub) => {
+        container.innerHTML += `
+          <label class="inline-flex items-center space-x-1.5 p-1 text-xs">
+            <input type="checkbox" value="${sub}" class="m-sub-chk w-3.5 h-3.5">
+            <span>${sub}</span>
+          </label>
+        `;
+      });
+
+      // Load Cấu hình
+      const setDoc = await db.collection("settings").doc("global").get();
+      if(setDoc.exists) {
+        globalConfig = setDoc.data();
+        runCountdown(globalConfig.examDate);
+      }
+
+      await loadMyCombos();
+      await mLoadUnis();
+      await mLoadWishes();
+    }
+
+    function runCountdown(dateStr) {
+      if(!dateStr) return;
+      const target = new Date(dateStr).getTime();
+      setInterval(() => {
+        const now = new Date().getTime();
+        const diff = target - now;
+        if(diff < 0) {
+          document.getElementById('mCountdown').innerText = "Đã thi!";
+          return;
+        }
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        document.getElementById('mCountdown').innerText = `${days} ngày nữa thi`;
+      }, 1000);
+    }
+
+    function mSwitchTab(tabId) {
+      document.querySelectorAll('.m-tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.m-nav-btn').forEach(el => el.className = "m-nav-btn text-gray-500 flex flex-col items-center");
+      document.getElementById('mTab-' + tabId).classList.remove('hidden');
+      event.currentTarget.className = "m-nav-btn text-blue-600 font-bold flex flex-col items-center";
+
+      if(tabId === 'forms') mLoadSavedForms();
+    }
+
+let allSystemCombos = [];
+let chosenCombosSet = new Set();
+
+async function loadMyCombos() {
+  const systemSnap = await db.collection("combos").get();
+  allSystemCombos = [];
+  systemSnap.forEach(doc => allSystemCombos.push(doc.data()));
+  mPopulateComboSelect(allSystemCombos);
+
+  const doc = await db.collection("student_combos").doc(user.username).get();
+  if(doc.exists) {
+    myCombos = doc.data().registeredCombos || [];
+    chosenCombosSet = new Set(myCombos);
+  }
+  mRenderChosenCombos();
+}
+
+function getCombinations(array, k) {
+  let result = [];
+  function helper(start, combo) {
+    if (combo.length === k) {
+      result.push([...combo]);
+      return;
+    }
+    for (let i = start; i < array.length; i++) {
+      combo.push(array[i]);
+      helper(i + 1, combo);
+      combo.pop();
+    }
+  }
+  helper(0, []);
+  return result;
+}
+
+async function mCheckCombos() {
+  const selected = Array.from(document.querySelectorAll('.m-sub-chk:checked')).map(el => el.value);
+  if(selected.length !== 2) {
+    alert("Phải chọn đúng 2 môn bổ sung.");
+    return;
+  }
+  const allSelected = ["Toán", "Ngữ văn", ...selected];
+  const subSets = getCombinations(allSelected, 3);
+
+  const listEl = document.getElementById('mComboList');
+  listEl.innerHTML = '';
+  let foundCount = 0;
+
+  allSystemCombos.forEach(sysCombo => {
+    const sysSubjectsSorted = [...sysCombo.subjects].sort().join(',');
+    subSets.forEach(subSet => {
+      const subSetSorted = [...subSet].sort().join(',');
+      if (sysSubjectsSorted === subSetSorted) {
+        foundCount++;
+        const isChecked = chosenCombosSet.has(sysCombo.id) ? 'checked' : '';
+        listEl.innerHTML += `
+          <label class="flex items-center space-x-2 bg-gray-50 p-1.5 rounded border text-xs">
+            <input type="checkbox" value="${sysCombo.id}" class="m-auto-combo-chk" ${isChecked} onchange="mToggleComboChoice('${sysCombo.id}', this.checked)">
+            <span><strong>${sysCombo.id}</strong>: ${sysCombo.subjects.join('-')}</span>
+          </label>
+        `;
+      }
+    });
+  });
+
+  if(foundCount === 0) {
+    listEl.innerHTML = '<p class="text-xs text-gray-500">Không tìm thấy tổ hợp phù hợp.</p>';
+  }
+  document.getElementById('mComboResult').classList.remove('hidden');
+}
+
+function mPopulateComboSelect(combos) {
+  const select = document.getElementById("mManualComboSelect");
+  select.innerHTML = "";
+  combos.forEach(c => {
+    select.innerHTML += `<option value="${c.id}">${c.id} (${c.subjects.join(', ')})</option>`;
+  });
+}
+
+function mFilterCombos() {
+  const query = document.getElementById("mSearchComboInput").value.toLowerCase().trim();
+  const filtered = allSystemCombos.filter(c => {
+    return c.id.toLowerCase().includes(query) || c.subjects.some(sub => sub.toLowerCase().includes(query));
+  });
+  mPopulateComboSelect(filtered);
+}
+
+function mAddManualCombo() {
+  const select = document.getElementById("mManualComboSelect");
+  if(select.selectedIndex === -1) {
+    alert("Hãy chọn một tổ hợp.");
+    return;
+  }
+  const comboId = select.value;
+  mToggleComboChoice(comboId, true);
+  document.querySelectorAll(".m-auto-combo-chk").forEach(chk => {
+    if(chk.value === comboId) chk.checked = true;
+  });
+}
+
+function mToggleComboChoice(comboId, isChecked) {
+  if (isChecked) {
+    chosenCombosSet.add(comboId);
+  } else {
+    chosenCombosSet.delete(comboId);
+  }
+  mRenderChosenCombos();
+}
+
+function mRenderChosenCombos() {
+  const container = document.getElementById("mSelectedCombosOverview");
+  container.innerHTML = "";
+  if (chosenCombosSet.size === 0) {
+    container.innerHTML = '<span class="text-gray-400 text-xs">Chưa chọn tổ hợp...</span>';
+    return;
+  }
+  chosenCombosSet.forEach(comboId => {
+    container.innerHTML += `
+      <span class="inline-flex items-center bg-blue-100 text-blue-800 text-[10px] font-semibold px-2 py-0.5 rounded mr-1 mb-1">
+        ${comboId}
+        <button type="button" onclick="mRemoveChosenCombo('${comboId}')" class="ml-1 text-blue-500 font-bold">×</button>
+      </span>
+    `;
+  });
+}
+
+function mRemoveChosenCombo(comboId) {
+  mToggleComboChoice(comboId, false);
+  document.querySelectorAll(".m-auto-combo-chk").forEach(chk => {
+    if(chk.value === comboId) chk.checked = false;
+  });
+}
+
+async function mConfirmCombos() {
+  if (chosenCombosSet.size === 0) {
+    alert("Hãy lựa chọn ít nhất một tổ hợp.");
+    return;
+  }
+  const arrCombos = Array.from(chosenCombosSet);
+  await db.collection("student_combos").doc(user.username).set({
+    registeredCombos: arrCombos,
+    selectedSubjects: Array.from(document.querySelectorAll('.m-sub-chk:checked')).map(el => el.value)
+  });
+  myCombos = arrCombos;
+  alert("Cập nhật tổ hợp thành công!");
+}
+
+let allUnis = [];   // Lưu toàn bộ danh sách trường di động
+let allMajors = []; // Lưu toàn bộ danh sách ngành di động
+
+// Tải danh sách trường
+async function mLoadUnis() {
+  const snap = await db.collection("universities").get();
+  allUnis = [];
+  snap.forEach(doc => {
+    allUnis.push(doc.data());
+  });
+  mPopulateUniSelect(allUnis);
+}
+
+// Đổ dữ liệu trường di động
+function mPopulateUniSelect(unis) {
+  const s = document.getElementById('mWishUni');
+  s.innerHTML = '<option value="">-- Chọn trường học --</option>';
+  unis.forEach(uni => {
+    s.innerHTML += `<option value="${uni.id}">${uni.id} - ${uni.name}</option>`;
+  });
+  document.getElementById('mWishMajor').innerHTML = '<option value="">Chọn ngành...</option>';
+}
+
+// Lọc trường di động
+function mFilterUnis() {
+  const query = document.getElementById('mWishUniFilter').value.toLowerCase().trim();
+  const filtered = allUnis.filter(uni => 
+    uni.id.toLowerCase().includes(query) || 
+    uni.name.toLowerCase().includes(query)
+  );
+  mPopulateUniSelect(filtered);
+}
+
+// Tải danh sách ngành theo trường
+async function mLoadWishMajors() {
+  const uniId = document.getElementById('mWishUni').value;
+  const s = document.getElementById('mWishMajor');
+  s.innerHTML = '<option value="">Chọn ngành...</option>';
+  document.getElementById('mWishMajorFilter').value = '';
+  allMajors = [];
+  
+  if(!uniId) return;
+
+  const snap = await db.collection("majors").where("uniId", "==", uniId).get();
+  snap.forEach(doc => {
+    allMajors.push(doc.data());
+  });
+  mPopulateMajorSelect(allMajors);
+}
+
+// Đổ dữ liệu ngành di động
+function mPopulateMajorSelect(majors) {
+  const s = document.getElementById('mWishMajor');
+  s.innerHTML = '<option value="">-- Chọn ngành học --</option>';
+  majors.forEach(major => {
+    s.innerHTML += `<option value="${major.id}">${major.id} - ${major.name}</option>`;
+  });
+}
+
+// Lọc ngành di động
+function mFilterMajors() {
+  const query = document.getElementById('mWishMajorFilter').value.toLowerCase().trim();
+  const filtered = allMajors.filter(major => 
+    major.id.toLowerCase().includes(query) || 
+    major.name.toLowerCase().includes(query)
+  );
+  mPopulateMajorSelect(filtered);
+}
+    async function mLoadWishes() {
+      const doc = await db.collection("wishes").doc(user.username).get();
+      currentWishes = doc.exists ? (doc.data().wishes || []) : [];
+      mRenderWishes();
+    }
+
+    function mRenderWishes() {
+      const container = document.getElementById('mWishListContainer');
+      container.innerHTML = '';
+      currentWishes.forEach((w, index) => {
+        container.innerHTML += `
+          <div class="border p-2 rounded bg-gray-50 flex justify-between items-center text-xs">
+            <div>
+              <p class="font-bold">NV ${w.order}: ${w.uniId}</p>
+              <p class="text-gray-500">${w.majorId} - ${w.comboId}</p>
+            </div>
+            <div class="flex space-x-1">
+              <button onclick="mMoveWish(${index}, -1)" class="bg-gray-200 px-1 py-0.5 rounded">▲</button>
+              <button onclick="mMoveWish(${index}, 1)" class="bg-gray-200 px-1 py-0.5 rounded">▼</button>
+              <button onclick="mDeleteWish(${index})" class="text-red-500 font-semibold px-1">Xóa</button>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+async function mAddWish() {
+  if(globalConfig.lockWishes) {
+    alert("Hệ thống hiện tại đã đóng chức năng điều chỉnh nguyện vọng.");
+    return;
+  }
+  if(currentWishes.length >= globalConfig.maxWishes) {
+    alert(`Bạn chỉ được đăng ký tối đa ${globalConfig.maxWishes} nguyện vọng.`);
+    return;
+  }
+
+  const uniId = document.getElementById('mWishUni').value;
+  const majorId = document.getElementById('mWishMajor').value;
+  if(!uniId || !majorId) {
+    alert("Vui lòng chọn đầy đủ trường và ngành.");
+    return;
+  }
+
+  const nextOrder = currentWishes.length + 1;
+
+  // Kiểm tra luật giới hạn vị trí nguyện vọng trước khi thêm
+  const isPositionValid = await validateWishPosition(uniId, majorId, nextOrder);
+  if(!isPositionValid) return;
+
+  const majorDoc = await db.collection("majors").doc(uniId + "_" + majorId).get();
+  if(!majorDoc.exists) return;
+  const matched = (majorDoc.data().combos || []).filter(c => myCombos.includes(c));
+
+  if(matched.length === 0) {
+    alert("Ngành học này không phù hợp với tổ hợp môn của bạn.");
+    return;
+  }
+
+  currentWishes.push({
+    order: nextOrder,
+    uniId: uniId,
+    majorId: majorId,
+    comboId: matched[0]
+  });
+
+  await db.collection("wishes").doc(user.username).set({ wishes: currentWishes });
+  mRenderWishes();
+}
+async function mMoveWish(index, dir) {
+  if(globalConfig.lockWishes) {
+    alert("Hệ thống hiện tại đã đóng chức năng điều chỉnh nguyện vọng.");
+    return;
+  }
+  const target = index + dir;
+  if(target < 0 || target >= currentWishes.length) return;
+
+  const currentItem = currentWishes[index];
+  const targetItem = currentWishes[target];
+
+  // Thứ tự giả định của hai nguyện vọng sau khi hoán đổi vị trí
+  const newOrderForCurrent = target + 1;
+  const newOrderForTarget = index + 1;
+
+  // Kiểm tra tính hợp lệ của cả hai nguyện vọng tại vị trí mới
+  const checkCurrent = await validateWishPosition(currentItem.uniId, currentItem.majorId, newOrderForCurrent);
+  if(!checkCurrent) return;
+
+  const checkTarget = await validateWishPosition(targetItem.uniId, targetItem.majorId, newOrderForTarget);
+  if(!checkTarget) return;
+
+  // Hoán đổi vị trí trong mảng
+  const temp = currentWishes[index];
+  currentWishes[index] = currentWishes[target];
+  currentWishes[target] = temp;
+
+  // Thiết lập lại thuộc tính order theo thứ tự index mới
+  currentWishes.forEach((w, i) => w.order = i + 1);
+
+  await db.collection("wishes").doc(user.username).set({ wishes: currentWishes });
+  mRenderWishes();
+}
+    async function mDeleteWish(index) {
+      if(globalConfig.lockWishes) return;
+      currentWishes.splice(index, 1);
+      currentWishes.forEach((w, i) => w.order = i + 1);
+      await db.collection("wishes").doc(user.username).set({ wishes: currentWishes });
+      mRenderWishes();
+    }
+
+    async function saveWishFormToArchive() {
+      if(currentWishes.length === 0) return alert("Chưa có thông tin.");
+      await db.collection("saved_forms").add({
+        studentUid: user.username,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        wishes: currentWishes
+      });
+      alert("Đã lưu phiếu thành công.");
+      mSwitchTab('forms');
+    }
+
+    async function mLoadSavedForms() {
+      const container = document.getElementById('mSavedFormsContainer');
+      container.innerHTML = '';
+      const snap = await db.collection("saved_forms").where("studentUid", "==", user.username).get();
+      if(snap.empty) {
+        container.innerHTML = '<p class="text-xs text-gray-500">Chưa lưu phiếu nào.</p>';
+        return;
+      }
+      snap.forEach(doc => {
+        const d = doc.data();
+        let listStr = d.wishes.map(w => `NV ${w.order}: ${w.uniId}-${w.majorId}`).join(', ');
+        container.innerHTML += `
+          <div class="border p-2 rounded bg-gray-50 text-[11px] space-y-1">
+            <p class="font-bold">Mã Phiếu: ${doc.id}</p>
+            <p>${listStr}</p>
+          </div>
+        `;
+      });
+    }
+
+    function printWishes() {
+      let printWindow = window.open('', '_blank');
+      let bodyHtml = `<h2>PHIẾU ĐĂNG KÝ NGUYỆN VỌNG - ĐIỆN THOẠI</h2>`;
+      bodyHtml += `<p>Họ tên: ${user.fullName}</p><p>Lớp: ${user.class}</p><table border="1" style="border-collapse: collapse; width: 100%;">`;
+      bodyHtml += `<tr><th>Thứ tự</th><th>Mã Trường</th><th>Mã Ngành</th><th>Tổ hợp</th></tr>`;
+      currentWishes.forEach(w => {
+        bodyHtml += `<tr><td>${w.order}</td><td>${w.uniId}</td><td>${w.majorId}</td><td>${w.comboId}</td></tr>`;
+      });
+      bodyHtml += `</table>`;
+      printWindow.document.write(bodyHtml);
+      printWindow.document.close();
+      printWindow.print();
+    }
+
+    async function mChangePassword() {
+      const p = document.getElementById('mNewPass').value.trim();
+      if(p) {
+        await db.collection("users").doc(user.username).update({ password: p });
+        alert("Đã cập nhật mật khẩu.");
+      }
+    }
+
+    function studentLogout() {
+      localStorage.removeItem("currentUser");
+      window.location.href = "index.html";
+    }
+
+    initMobile();
+// Hàm kiểm tra xem vị trí đặt nguyện vọng có vi phạm bất kỳ luật giới hạn nào không
+async function validateWishPosition(uniId, majorId, targetOrder) {
+  const snap = await db.collection("wish_rules")
+    .where("uniId", "==", uniId)
+    .get();
+    
+  if (snap.empty) return true; // Không có luật nào áp dụng cho trường này
+
+  let isValid = true;
+  snap.forEach(doc => {
+    const rule = doc.data();
+    // Nếu luật áp dụng cho ngành học này
+    if (rule.majors.includes(majorId)) {
+      if (targetOrder < rule.orderMin || targetOrder > rule.orderMax) {
+        alert(`Vi phạm quy định! Ngành ${majorId} của Trường ${uniId} chỉ được phép đặt ở thứ tự nguyện vọng từ ${rule.orderMin} đến ${rule.orderMax}.`);
+        isValid = false;
+      }
+    }
+  });
+  return isValid;
+}
+// Cập nhật hàm điều khiển Tab cũ trên di động
+function mSwitchTab(tabId) {
+  document.querySelectorAll('.m-tab-content').forEach(el => el.classList.add('hidden'));
+  document.querySelectorAll('.m-nav-btn').forEach(el => el.className = "m-nav-btn text-gray-500 flex flex-col items-center");
+  document.getElementById('mTab-' + tabId).classList.remove('hidden');
+  event.currentTarget.className = "m-nav-btn text-blue-600 font-bold flex flex-col items-center";
+
+  if(tabId === 'suggest') mRenderSuggestCombos(); // <--- Chạy nạp checkbox khi chuyển Tab gợi ý
+  if(tabId === 'forms') mLoadSavedForms();
+}
+
+function mRenderSuggestCombos() {
+  const container = document.getElementById("mSuggestComboCheckboxes");
+  container.innerHTML = "";
+  if (myCombos.length === 0) {
+    container.innerHTML = `<p class="text-xs text-red-500">Bạn chưa đăng ký tổ hợp.</p>`;
+    return;
+  }
+  myCombos.forEach(comboId => {
+    container.innerHTML += `
+      <label class="inline-flex items-center space-x-1 bg-blue-50 text-blue-800 text-[10px] font-semibold px-2 py-1 rounded border border-blue-200">
+        <input type="checkbox" value="${comboId}" class="m-suggest-combo-chk w-3.5 h-3.5">
+        <span>${comboId}</span>
+      </label>
+    `;
+  });
+}
+
+async function mSearchSuitableMajors() {
+  const selectedCombos = Array.from(document.querySelectorAll(".m-suggest-combo-chk:checked")).map(el => el.value);
+  if (selectedCombos.length === 0) {
+    alert("Vui lòng chọn tổ hợp môn.");
+    return;
+  }
+
+  const query = document.getElementById("mSuggestSearchInput").value.toLowerCase().trim();
+  const resultsContainer = document.getElementById("mSuggestResultsList");
+  resultsContainer.innerHTML = `<p class="text-gray-400 text-xs text-center py-4">Đang xử lý thông tin...</p>`;
+
+  try {
+    const majorsSnap = await db.collection("majors").get();
+    const matchingMajors = [];
+
+    majorsSnap.forEach(doc => {
+      const major = doc.data();
+      const hasCommonCombo = major.combos.some(c => selectedCombos.includes(c));
+      if (hasCommonCombo) {
+        matchingMajors.push(major);
+      }
+    });
+
+    let filteredMajors = [];
+    for (const major of matchingMajors) {
+      const uniDoc = await db.collection("universities").doc(major.uniId).get();
+      const uniName = uniDoc.exists ? uniDoc.data().name : "Trường khác";
+      
+      if (query === "" || 
+          uniName.toLowerCase().includes(query) || 
+          major.uniId.toLowerCase().includes(query) || 
+          major.name.toLowerCase().includes(query) || 
+          major.id.toLowerCase().includes(query)) {
+        filteredMajors.push({ ...major, uniName: uniName });
+      }
+    }
+
+    resultsContainer.innerHTML = "";
+    if (filteredMajors.length === 0) {
+      resultsContainer.innerHTML = `<p class="text-gray-400 text-xs text-center py-4">Không tìm thấy ngành phù hợp.</p>`;
+      return;
+    }
+
+    filteredMajors.forEach(major => {
+      resultsContainer.innerHTML += `
+        <div class="border border-gray-100 bg-gray-50 p-3 rounded-lg flex justify-between items-center text-xs">
+          <div class="space-y-0.5 max-w-[70%]">
+            <span class="inline-block bg-blue-100 text-blue-800 text-[8px] font-bold px-1.5 rounded uppercase">${major.uniId}</span>
+            <h4 class="font-bold text-gray-800 text-xs truncate">${major.name}</h4>
+            <p class="text-[10px] text-gray-500 truncate">${major.uniName}</p>
+            <p class="text-[9px] text-blue-600">Tổ hợp: ${major.combos.join(', ')}</p>
+          </div>
+          <button onclick="mQuickAddWish('${major.uniId}', '${major.id}')" class="bg-blue-600 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-md hover:bg-blue-700 shrink-0">
+            Thêm nhanh
+          </button>
+        </div>
+      `;
+    });
+
+  } catch (error) {
+    console.error(error);
+    resultsContainer.innerHTML = `<p class="text-red-500 text-xs text-center py-4">Lỗi xảy ra khi nạp.</p>`;
+  }
+}
+
+async function mQuickAddWish(uniId, majorId) {
+  if(globalConfig.lockWishes) {
+    alert("Hệ thống đã khóa chức năng.");
+    return;
+  }
+  if(currentWishes.length >= globalConfig.maxWishes) {
+    alert(`Đã đạt số lượng nguyện vọng tối đa.`);
+    return;
+  }
+  const nextOrder = currentWishes.length + 1;
+
+  const isPositionValid = await validateWishPosition(uniId, majorId, nextOrder);
+  if(!isPositionValid) return;
+
+  const majorDoc = await db.collection("majors").doc(uniId + "_" + majorId).get();
+  if(!majorDoc.exists) return;
+  const matched = (majorDoc.data().combos || []).filter(c => myCombos.includes(c));
+
+  if(matched.length === 0) {
+    alert("Không có tổ hợp môn phù hợp.");
+    return;
+  }
+
+  currentWishes.push({
+    order: nextOrder,
+    uniId,
+    majorId,
+    comboId: matched[0]
+  });
+
+  await db.collection("wishes").doc(user.username).set({ wishes: currentWishes });
+  alert(`Đã thêm thành công Nguyện vọng ${nextOrder}!`);
+  mRenderWishes(); // Đồng bộ bảng ở Tab nguyện vọng di động
+}
+  </script>
+</body>
+</html>
