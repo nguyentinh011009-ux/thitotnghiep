@@ -604,7 +604,6 @@ function renderWishTable() {
       }
 
       currentWishes.forEach((w, index) => {
-        // Ánh xạ tên trường học dựa vào mã trường từ danh sách allUnis
         const uniObj = allUnis.find(u => u.id === w.uniId);
         const uniName = uniObj ? uniObj.name : "Đang tải tên trường...";
         const majorDisplayName = majorNamesMap.get(w.uniId + "_" + w.majorId) || w.majorName || w.majorId;
@@ -613,13 +612,15 @@ function renderWishTable() {
           <tr draggable="true" 
               ondragstart="dragStart(event, ${index})" 
               ondragover="dragOver(event, ${index})" 
+              ondragenter="dragEnter(event, ${index})"
+              ondragleave="dragLeave(event, ${index})"
               ondrop="drop(event, ${index})" 
               ondragend="dragEnd(event)"
-              class="border-b border-gray-100 hover:bg-blue-50/20 transition-all duration-150 cursor-grab active:cursor-grabbing select-none">
+              class="border-b border-gray-100 border-t-2 border-t-transparent hover:bg-blue-50/25 transition-all duration-200 cursor-grab active:cursor-grabbing select-none">
             
             <!-- Cột tay cầm kéo thả (Grip) -->
-            <td class="p-3 text-center text-gray-400">
-              <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <td class="p-3 text-center text-gray-400 cursor-grab active:cursor-grabbing">
+              <svg class="w-4 h-4 mx-auto text-gray-400 hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 8h16M4 16h16"></path>
               </svg>
             </td>
@@ -638,7 +639,7 @@ function renderWishTable() {
               </span>
             </td>
 
-            <!-- Cột tên trường (đã hỗ trợ xuống dòng đầy đủ) -->
+            <!-- Cột tên trường -->
             <td class="p-3 font-medium text-slate-700 text-xs break-words whitespace-normal leading-relaxed max-w-[200px]">
               ${uniName}
             </td>
@@ -697,25 +698,53 @@ let dragStartIndex = -1;
       }
       dragStartIndex = index;
       e.dataTransfer.effectAllowed = 'move';
-      e.currentTarget.classList.add('bg-blue-50', 'opacity-60');
+      e.dataTransfer.setData('text/plain', index);
+      
+      // Sử dụng setTimeout để dòng gốc chỉ mờ đi sau khi trình duyệt đã khởi tạo xong "ảnh bóng" (ghost image) khi kéo
+      const row = e.currentTarget;
+      setTimeout(() => {
+        row.classList.add('opacity-40', 'bg-slate-100');
+      }, 0);
     }
 
     function dragOver(e, index) {
       if (globalConfig.lockWishes) return;
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
+      e.preventDefault(); // Cho phép thả phần tử
+    }
+
+    function dragEnter(e, index) {
+      if (globalConfig.lockWishes) return;
+      if (index === dragStartIndex) return;
+      
+      // Thêm viền xanh dương đậm ở phía trên dòng đang lướt qua để báo hiệu vị trí thả
+      const row = e.currentTarget;
+      row.classList.remove('border-t-transparent');
+      row.classList.add('border-t-blue-500', 'bg-blue-50/50');
+    }
+
+    function dragLeave(e, index) {
+      if (globalConfig.lockWishes) return;
+      
+      // Trả lại trạng thái viền trong suốt ban đầu khi rời đi
+      const row = e.currentTarget;
+      row.classList.remove('border-t-blue-500', 'bg-blue-50/50');
+      row.classList.add('border-t-transparent');
     }
 
     async function drop(e, targetIndex) {
       if (globalConfig.lockWishes) return;
       e.preventDefault();
       
+      const row = e.currentTarget;
+      row.classList.remove('border-t-blue-500', 'bg-blue-50/50');
+      row.classList.add('border-t-transparent');
+
       if (dragStartIndex === -1 || dragStartIndex === targetIndex) return;
 
       const currentItem = currentWishes[dragStartIndex];
       const targetItem = currentWishes[targetIndex];
 
-      // Xác thực điều kiện quy tắc trước khi áp dụng vị trí mới
+      // Kiểm tra quy tắc vị trí từ cơ sở dữ liệu
       const isCurrentValid = await validateWishPosition(currentItem.uniId, currentItem.majorId, targetIndex + 1);
       const isTargetValid = await validateWishPosition(targetItem.uniId, targetItem.majorId, dragStartIndex + 1);
 
@@ -725,8 +754,8 @@ let dragStartIndex = -1;
         return;
       }
 
-      // Đảo vị trí trong mảng dữ liệu
-      const movedItem = currentWishes.splice(dragStartIndex, 1)[0];
+      // Rút phần tử khỏi vị trí cũ và chèn trực tiếp vào vị trí mới
+      const [movedItem] = currentWishes.splice(dragStartIndex, 1);
       currentWishes.splice(targetIndex, 0, movedItem);
 
       // Cập nhật lại số thứ tự (order)
@@ -739,7 +768,11 @@ let dragStartIndex = -1;
 
     function dragEnd(e) {
       dragStartIndex = -1;
-      renderWishTable();
+      // Dọn dẹp tất cả các class hiệu ứng còn sót lại trên mọi dòng của bảng
+      document.querySelectorAll('#wishTableBody tr').forEach(row => {
+        row.classList.remove('opacity-40', 'bg-slate-100', 'border-t-blue-500', 'bg-blue-50/50');
+        row.classList.add('border-t-transparent');
+      });
     }
     async function addWishRow() {
       if(globalConfig.lockWishes) {
