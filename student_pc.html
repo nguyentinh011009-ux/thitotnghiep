@@ -731,7 +731,7 @@ let dragStartIndex = -1;
       row.classList.add('border-t-transparent');
     }
 
-async function drop(e, targetIndex) {
+function drop(e, targetIndex) {
       if (globalConfig.lockWishes) return;
       e.preventDefault();
       
@@ -741,43 +741,43 @@ async function drop(e, targetIndex) {
 
       if (dragStartIndex === -1 || dragStartIndex === targetIndex) return;
 
+      // Sao lưu lại danh sách phòng trường hợp cần hoàn tác khi vi phạm quy tắc
+      const backupWishes = JSON.stringify(currentWishes);
       const movedItem = currentWishes[dragStartIndex];
 
-      // Tính toán vị trí chèn chính xác dựa vào hướng kéo
+      // Tính toán vị trí chèn mới dựa theo hướng kéo
       let finalInsertIndex = targetIndex;
       if (dragStartIndex < targetIndex) {
-        // Trường hợp kéo từ TRÊN xuống DƯỚI (VD: NV3 -> NV7)
-        // Rút NV3 ra làm mảng co lại 1 vị trí, nên thả vào NV7 sẽ chèn ngay phía trên NV7 (thành NV6)
+        // Kéo từ TRÊN xuống DƯỚI (Ví dụ: NV3 -> NV7 thì NV3 sẽ nằm ở vị trí NV6 cũ, ngay trên NV7)
         finalInsertIndex = targetIndex - 1;
       } else {
-        // Trường hợp kéo từ DƯỚI lên TRÊN (VD: NV7 -> NV3)
-        // Thả vào NV3 sẽ chèn ngay phía trên NV3 (thành NV3 mới)
+        // Kéo từ DƯỚI lên TRÊN
         finalInsertIndex = targetIndex;
       }
 
-      // Vị trí thứ tự nguyện vọng mới (1-based)
-      const newOrder = finalInsertIndex + 1;
-
-      // Kiểm tra quy định vị trí của nguyện vọng
-      const isValid = await validateWishPosition(movedItem.uniId, movedItem.majorId, newOrder);
-      if (!isValid) {
-        dragStartIndex = -1;
-        renderWishTable();
-        return;
-      }
-
-      // 1. Rút phần tử kéo ra khỏi mảng
+      // 1. Thực hiện cắt và chèn ĐỒNG BỘ ngay lập tức để tránh xung đột dữ liệu
       currentWishes.splice(dragStartIndex, 1);
-
-      // 2. Chèn vào vị trí đích đã tính toán
       currentWishes.splice(finalInsertIndex, 0, movedItem);
 
-      // 3. Đánh lại số thứ tự (Order) cho toàn bộ danh sách
+      // 2. Đánh lại số thứ tự tuần tự ĐỒNG BỘ (đảm bảo hiển thị chuẩn 1, 2, 3...)
       currentWishes.forEach((w, i) => w.order = i + 1);
 
+      // 3. Cập nhật giao diện ngay tức thì
       hasUnsavedChanges = true;
       updateUnsavedChangesBadge();
       renderWishTable();
+
+      // 4. Kiểm tra quy định ở chế độ nền (Background Validation)
+      const newOrder = finalInsertIndex + 1;
+      validateWishPosition(movedItem.uniId, movedItem.majorId, newOrder).then(isValid => {
+        if (!isValid) {
+          // Hoàn tác nếu vi phạm quy định đặt nguyện vọng
+          currentWishes = JSON.parse(backupWishes);
+          renderWishTable();
+        }
+      }).catch(err => {
+        console.error("Lỗi kiểm tra quy định vị trí:", err);
+      });
     }
     function dragEnd(e) {
       dragStartIndex = -1;
@@ -832,10 +832,13 @@ async function drop(e, targetIndex) {
       document.getElementById('wishComboContainer').classList.add('hidden');
     }
 
-    async function moveWish(index, dir) {
+function moveWish(index, dir) {
       if(globalConfig.lockWishes) return alert("Hệ thống đã khóa.");
       const target = index + dir;
       if(target < 0 || target >= currentWishes.length) return;
+      
+      // Sao lưu danh sách phòng trường hợp cần hoàn tác
+      const backupWishes = JSON.stringify(currentWishes);
       
       const currentItem = currentWishes[index];
       const targetItem = currentWishes[target];
@@ -843,21 +846,33 @@ async function drop(e, targetIndex) {
       const newOrderForCurrent = target + 1;
       const newOrderForTarget = index + 1;
 
-      const checkCurrent = await validateWishPosition(currentItem.uniId, currentItem.majorId, newOrderForCurrent);
-      if(!checkCurrent) return;
-
-      const checkTarget = await validateWishPosition(targetItem.uniId, targetItem.majorId, newOrderForTarget);
-      if(!checkTarget) return;
-
+      // 1. Hoán đổi phần tử ĐỒNG BỘ ngay lập tức
       const temp = currentWishes[index];
       currentWishes[index] = currentWishes[target];
       currentWishes[target] = temp;
 
+      // 2. Đánh lại số thứ tự ĐỒNG BỘ
       currentWishes.forEach((w, i) => w.order = i + 1);
 
+      // 3. Cập nhật giao diện ngay tức thì
       hasUnsavedChanges = true;
       updateUnsavedChangesBadge();
       renderWishTable();
+
+      // 4. Kiểm tra quy tắc vị trí ở chế độ nền
+      Promise.all([
+        validateWishPosition(currentItem.uniId, currentItem.majorId, newOrderForCurrent),
+        validateWishPosition(targetItem.uniId, targetItem.majorId, newOrderForTarget)
+      ]).then(results => {
+        const [isCurrentValid, isTargetValid] = results;
+        if (!isCurrentValid || !isTargetValid) {
+          // Hoàn tác nếu có bất kỳ nguyện vọng nào vi phạm quy tắc vị trí
+          currentWishes = JSON.parse(backupWishes);
+          renderWishTable();
+        }
+      }).catch(err => {
+        console.error("Lỗi kiểm tra quy định di chuyển:", err);
+      });
     }
 
     async function saveWishFormToArchive() {
