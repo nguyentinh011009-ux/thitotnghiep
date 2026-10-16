@@ -90,6 +90,7 @@ export const AdminDashboard: React.FC<Props> = ({ onLogout }) => {
     name: '',
     combos: []
   });
+  const [majorComboQuickInput, setMajorComboQuickInput] = useState('');
 
   // Edit Student Modal
   const [editingStudent, setEditingStudent] = useState<{
@@ -278,6 +279,7 @@ export const AdminDashboard: React.FC<Props> = ({ onLogout }) => {
   // Save or Update Major
   const handleOpenAddMajor = () => {
     setEditingMajor(null);
+    setMajorComboQuickInput('');
     setMajorFormData({
       uniId: universities[0]?.id || '',
       id: '',
@@ -289,6 +291,7 @@ export const AdminDashboard: React.FC<Props> = ({ onLogout }) => {
 
   const handleOpenEditMajor = (m: Major) => {
     setEditingMajor(m);
+    setMajorComboQuickInput('');
     setMajorFormData({
       uniId: m.uniId,
       id: m.id,
@@ -296,6 +299,32 @@ export const AdminDashboard: React.FC<Props> = ({ onLogout }) => {
       combos: m.combos || []
     });
     setShowMajorModal(true);
+  };
+
+  const handleQuickAddMajorCombo = () => {
+    const raw = majorComboQuickInput.trim().toUpperCase();
+    if (!raw) return;
+
+    // Search exact match or starting with raw code
+    const exactMatch = combos.find(c => c.id.toUpperCase() === raw);
+    const partialMatch = combos.find(c => c.id.toUpperCase().startsWith(raw));
+    const target = exactMatch || partialMatch;
+
+    if (!target) {
+      toast.warning(`Không tìm thấy mã tổ hợp "${raw}".`);
+      return;
+    }
+
+    if (majorFormData.combos.includes(target.id)) {
+      toast.info(`Tổ hợp ${target.id} đã được chọn.`);
+    } else {
+      setMajorFormData(prev => ({
+        ...prev,
+        combos: [...prev.combos, target.id]
+      }));
+      toast.success(`Đã thêm tổ hợp ${target.id}!`);
+    }
+    setMajorComboQuickInput('');
   };
 
   const handleSaveMajor = async (e: React.FormEvent) => {
@@ -1781,31 +1810,117 @@ export const AdminDashboard: React.FC<Props> = ({ onLogout }) => {
               className="w-full border border-slate-200 p-2 rounded-xl"
             />
             <div>
-              <label className="block text-slate-700 font-semibold mb-1">
-                Tổ hợp xét tuyển ({majorFormData.combos.length} đã chọn):
-              </label>
+              <div className="flex justify-between items-center mb-1.5">
+                <label className="block text-slate-700 font-semibold">
+                  Tổ hợp xét tuyển ({majorFormData.combos.length} đã chọn):
+                </label>
+                {majorFormData.combos.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setMajorFormData(prev => ({ ...prev, combos: [] }))}
+                    className="text-[11px] text-rose-600 hover:underline font-semibold"
+                  >
+                    Bỏ chọn tất cả
+                  </button>
+                )}
+              </div>
+
+              {/* Ô gõ mã tổ hợp & Enter để chọn nhanh */}
+              <div className="flex items-center gap-1.5 mb-2">
+                <div className="relative flex-1">
+                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
+                  <input
+                    type="text"
+                    value={majorComboQuickInput}
+                    onChange={(e) => setMajorComboQuickInput(e.target.value.toUpperCase())}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleQuickAddMajorCombo();
+                      }
+                    }}
+                    placeholder="Gõ mã (A00, D01, C00...) nhấn Enter để chọn nhanh"
+                    className="w-full pl-8 pr-3 py-1.5 border border-blue-300 rounded-xl text-xs bg-blue-50/30 focus:bg-white focus:ring-2 focus:ring-blue-500 font-mono uppercase tracking-wider outline-none"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleQuickAddMajorCombo}
+                  className="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-xs flex items-center space-x-1 shrink-0"
+                  title="Nhấn Enter hoặc bấm vào đây để chọn"
+                >
+                  <span>+ Chọn (Enter)</span>
+                </button>
+              </div>
+
+              {/* Danh sách huy hiệu các tổ hợp đã chọn */}
+              {majorFormData.combos.length > 0 && (
+                <div className="flex flex-wrap gap-1 p-2 bg-blue-50/60 rounded-xl border border-blue-100 max-h-20 overflow-y-auto mb-2">
+                  {majorFormData.combos.map(code => {
+                    const cInfo = combos.find(c => c.id === code);
+                    return (
+                      <span
+                        key={code}
+                        className="inline-flex items-center bg-blue-600 text-white text-[11px] font-bold px-2 py-0.5 rounded-lg shadow-2xs"
+                      >
+                        <span>{code}</span>
+                        {cInfo && <span className="opacity-80 text-[10px] ml-1">({cInfo.subjects.join('-')})</span>}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setMajorFormData(prev => ({
+                              ...prev,
+                              combos: prev.combos.filter(x => x !== code)
+                            }))
+                          }
+                          className="ml-1.5 hover:text-rose-200 text-white font-bold leading-none"
+                          title={`Bỏ chọn ${code}`}
+                        >
+                          ×
+                        </button>
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Danh sách checkbox tổ hợp (lọc tức thì theo từ khóa) */}
               <div className="grid grid-cols-3 gap-1.5 border border-slate-200 p-2 rounded-xl max-h-36 overflow-y-auto">
-                {combos.map(c => {
-                  const isChecked = majorFormData.combos.includes(c.id);
-                  return (
-                    <label key={c.id} className="flex items-center space-x-1.5 cursor-pointer text-xs">
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={() => {
-                          setMajorFormData(prev => ({
-                            ...prev,
-                            combos: isChecked
-                              ? prev.combos.filter(x => x !== c.id)
-                              : [...prev.combos, c.id]
-                          }));
-                        }}
-                        className="w-3.5 h-3.5 rounded text-blue-600"
-                      />
-                      <span>{c.id}</span>
-                    </label>
-                  );
-                })}
+                {combos
+                  .filter(c => {
+                    if (!majorComboQuickInput.trim()) return true;
+                    const q = majorComboQuickInput.trim().toUpperCase();
+                    return c.id.toUpperCase().includes(q) || c.subjects.some(s => s.toUpperCase().includes(q));
+                  })
+                  .map(c => {
+                    const isChecked = majorFormData.combos.includes(c.id);
+                    return (
+                      <label
+                        key={c.id}
+                        className={`flex items-center space-x-1.5 cursor-pointer text-xs p-1 rounded-lg transition ${
+                          isChecked
+                            ? 'bg-blue-100/70 text-blue-900 font-bold'
+                            : 'hover:bg-slate-100 text-slate-700'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => {
+                            setMajorFormData(prev => ({
+                              ...prev,
+                              combos: isChecked
+                                ? prev.combos.filter(x => x !== c.id)
+                                : [...prev.combos, c.id]
+                            }));
+                          }}
+                          className="w-3.5 h-3.5 rounded text-blue-600"
+                        />
+                        <span className="font-mono">{c.id}</span>
+                      </label>
+                    );
+                  })}
               </div>
             </div>
             <div className="flex justify-end space-x-2 pt-2">

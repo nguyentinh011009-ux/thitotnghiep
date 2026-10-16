@@ -861,7 +861,27 @@ export const StudentPC: React.FC<Props> = ({ user, onLogout, onSwitchToMobile })
                         type="text"
                         value={comboSearchQuery}
                         onChange={(e) => setComboSearchQuery(e.target.value)}
-                        placeholder="Tìm kiếm tổ hợp..."
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const q = comboSearchQuery.trim().toUpperCase();
+                            if (!q) return;
+                            const match = allSystemCombos.find(c => c.id.toUpperCase() === q) ||
+                              allSystemCombos.find(c => c.id.toUpperCase().startsWith(q));
+                            if (match) {
+                              if (!chosenCombos.includes(match.id)) {
+                                setChosenCombos(prev => [...prev, match.id]);
+                                toast.success(`Đã thêm tổ hợp ${match.id}!`);
+                              } else {
+                                toast.info(`Tổ hợp ${match.id} đã có trong danh sách.`);
+                              }
+                              setComboSearchQuery('');
+                            } else {
+                              toast.warning(`Không tìm thấy mã tổ hợp "${q}".`);
+                            }
+                          }
+                        }}
+                        placeholder="Gõ mã (A00, D01...) rồi nhấn Enter để chọn nhanh..."
                         className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:ring-1 focus:ring-indigo-500 outline-none"
                       />
                     </div>
