@@ -1,0 +1,8 @@
+{
+  "name": "Hệ Thống Đăng Ký Nguyện Vọng Tuyển Sinh",
+  "description": "Cổng thông tin đăng ký và quản lý nguyện vọng xét tuyển Đại học - Cao đẳng",
+  "version": "1.0.0",
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
