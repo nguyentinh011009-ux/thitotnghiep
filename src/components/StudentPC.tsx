@@ -864,24 +864,43 @@ export const StudentPC: React.FC<Props> = ({ user, onLogout, onSwitchToMobile })
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
                             e.preventDefault();
-                            const q = comboSearchQuery.trim().toUpperCase();
-                            if (!q) return;
-                            const match = allSystemCombos.find(c => c.id.toUpperCase() === q) ||
-                              allSystemCombos.find(c => c.id.toUpperCase().startsWith(q));
-                            if (match) {
-                              if (!chosenCombos.includes(match.id)) {
-                                setChosenCombos(prev => [...prev, match.id]);
-                                toast.success(`Đã thêm tổ hợp ${match.id}!`);
+                            const raw = comboSearchQuery.trim();
+                            if (!raw) return;
+
+                            const tokens = raw.split(/[,，;]/).map(t => t.trim().toUpperCase()).filter(Boolean);
+                            if (tokens.length === 0) return;
+
+                            const added: string[] = [];
+                            const notFound: string[] = [];
+                            const alreadyChosen: string[] = [];
+
+                            tokens.forEach(token => {
+                              const match = allSystemCombos.find(c => c.id.toUpperCase() === token) ||
+                                allSystemCombos.find(c => c.id.toUpperCase().startsWith(token));
+                              if (match) {
+                                if (chosenCombos.includes(match.id) || added.includes(match.id)) {
+                                  alreadyChosen.push(match.id);
+                                } else {
+                                  added.push(match.id);
+                                }
                               } else {
-                                toast.info(`Tổ hợp ${match.id} đã có trong danh sách.`);
+                                notFound.push(token);
                               }
-                              setComboSearchQuery('');
-                            } else {
-                              toast.warning(`Không tìm thấy mã tổ hợp "${q}".`);
+                            });
+
+                            if (added.length > 0) {
+                              setChosenCombos(prev => [...prev, ...added]);
+                              toast.success(`Đã thêm ${added.length} tổ hợp: ${added.join(', ')}`);
                             }
+                            if (notFound.length > 0) {
+                              toast.warning(`Không tìm thấy: ${notFound.join(', ')}`);
+                            } else if (added.length === 0 && alreadyChosen.length > 0) {
+                              toast.info(`Tổ hợp đã có trong danh sách: ${alreadyChosen.join(', ')}`);
+                            }
+                            setComboSearchQuery('');
                           }
                         }}
-                        placeholder="Gõ mã (A00, D01...) rồi nhấn Enter để chọn nhanh..."
+                        placeholder="Gõ mã (A00, D01...) hoặc nhiều mã cách nhau bằng dấu phẩy rồi nhấn Enter..."
                         className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:ring-1 focus:ring-indigo-500 outline-none"
                       />
                     </div>

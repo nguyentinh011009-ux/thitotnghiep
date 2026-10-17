@@ -302,28 +302,52 @@ export const AdminDashboard: React.FC<Props> = ({ onLogout }) => {
   };
 
   const handleQuickAddMajorCombo = () => {
-    const raw = majorComboQuickInput.trim().toUpperCase();
+    const raw = majorComboQuickInput.trim();
     if (!raw) return;
 
-    // Search exact match or starting with raw code
-    const exactMatch = combos.find(c => c.id.toUpperCase() === raw);
-    const partialMatch = combos.find(c => c.id.toUpperCase().startsWith(raw));
-    const target = exactMatch || partialMatch;
+    // Split by comma (or semicolon) to support adding multiple combos: e.g. "A00, A01, D01, B00"
+    const tokens = raw
+      .split(/[,，;]/)
+      .map(t => t.trim().toUpperCase())
+      .filter(Boolean);
 
-    if (!target) {
-      toast.warning(`Không tìm thấy mã tổ hợp "${raw}".`);
-      return;
-    }
+    if (tokens.length === 0) return;
 
-    if (majorFormData.combos.includes(target.id)) {
-      toast.info(`Tổ hợp ${target.id} đã được chọn.`);
-    } else {
+    const added: string[] = [];
+    const alreadySelected: string[] = [];
+    const notFound: string[] = [];
+
+    tokens.forEach(token => {
+      const exactMatch = combos.find(c => c.id.toUpperCase() === token);
+      const partialMatch = combos.find(c => c.id.toUpperCase().startsWith(token));
+      const target = exactMatch || partialMatch;
+
+      if (!target) {
+        notFound.push(token);
+        return;
+      }
+
+      if (majorFormData.combos.includes(target.id) || added.includes(target.id)) {
+        alreadySelected.push(target.id);
+      } else {
+        added.push(target.id);
+      }
+    });
+
+    if (added.length > 0) {
       setMajorFormData(prev => ({
         ...prev,
-        combos: [...prev.combos, target.id]
+        combos: [...prev.combos, ...added]
       }));
-      toast.success(`Đã thêm tổ hợp ${target.id}!`);
+      toast.success(`Đã thêm ${added.length} tổ hợp: ${added.join(', ')}`);
     }
+
+    if (notFound.length > 0) {
+      toast.warning(`Không tìm thấy mã tổ hợp: ${notFound.join(', ')}`);
+    } else if (added.length === 0 && alreadySelected.length > 0) {
+      toast.info(`Tổ hợp đã có trong danh sách: ${alreadySelected.join(', ')}`);
+    }
+
     setMajorComboQuickInput('');
   };
 
@@ -1825,33 +1849,39 @@ export const AdminDashboard: React.FC<Props> = ({ onLogout }) => {
                 )}
               </div>
 
-              {/* Ô gõ mã tổ hợp & Enter để chọn nhanh */}
-              <div className="flex items-center gap-1.5 mb-2">
-                <div className="relative flex-1">
-                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
-                  <input
-                    type="text"
-                    value={majorComboQuickInput}
-                    onChange={(e) => setMajorComboQuickInput(e.target.value.toUpperCase())}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handleQuickAddMajorCombo();
-                      }
-                    }}
-                    placeholder="Gõ mã (A00, D01, C00...) nhấn Enter để chọn nhanh"
-                    className="w-full pl-8 pr-3 py-1.5 border border-blue-300 rounded-xl text-xs bg-blue-50/30 focus:bg-white focus:ring-2 focus:ring-blue-500 font-mono uppercase tracking-wider outline-none"
-                  />
+              {/* Ô gõ mã tổ hợp & Enter để chọn nhanh (hỗ trợ ngăn cách bằng dấu phẩy) */}
+              <div className="space-y-1 mb-2">
+                <div className="flex items-center gap-1.5">
+                  <div className="relative flex-1">
+                    <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
+                    <input
+                      type="text"
+                      value={majorComboQuickInput}
+                      onChange={(e) => setMajorComboQuickInput(e.target.value.toUpperCase())}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleQuickAddMajorCombo();
+                        }
+                      }}
+                      placeholder="Nhập mã hoặc dán nhiều tổ hợp ngăn cách bởi dấu phẩy: A00, A01, D01..."
+                      className="w-full pl-8 pr-3 py-1.5 border border-blue-300 rounded-xl text-xs bg-blue-50/30 focus:bg-white focus:ring-2 focus:ring-blue-500 font-mono uppercase tracking-wider outline-none"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleQuickAddMajorCombo}
+                    className="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-xs flex items-center space-x-1 shrink-0"
+                    title="Nhấn Enter hoặc bấm vào đây để thêm nhanh tất cả tổ hợp"
+                  >
+                    <span>+ Thêm nhanh (Enter)</span>
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleQuickAddMajorCombo}
-                  className="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-xs flex items-center space-x-1 shrink-0"
-                  title="Nhấn Enter hoặc bấm vào đây để chọn"
-                >
-                  <span>+ Chọn (Enter)</span>
-                </button>
+                <div className="flex items-center justify-between text-[11px] text-slate-500 px-1">
+                  <span>💡 Ngăn cách nhiều mã bằng dấu phẩy <b>,</b> (vd: <span className="font-mono text-blue-600">A00, A01, D01, C00</span>)</span>
+                  <span className="text-slate-400">Ấn Enter để thêm</span>
+                </div>
               </div>
 
               {/* Danh sách huy hiệu các tổ hợp đã chọn */}
