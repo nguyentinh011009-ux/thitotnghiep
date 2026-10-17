@@ -282,18 +282,35 @@ export const StudentPC: React.FC<Props> = ({ user, onLogout, onSwitchToMobile })
       return;
     }
 
-    if (!selectedUniId || !selectedMajorId || selectedCombosForWish.length === 0) {
-      toast.warning('Vui lòng chọn đầy đủ Trường, Ngành và ít nhất một Tổ hợp môn tương thích.');
+    if (!selectedUniId || !selectedMajorId) {
+      toast.warning('Vui lòng chọn đầy đủ Trường và Ngành xét tuyển.');
+      return;
+    }
+
+    const uniObj = universities.find(u => u.id === selectedUniId);
+    const majorObj = allMajors.find(m => m.uniId === selectedUniId && m.id === selectedMajorId);
+    const majorName = majorObj?.name || selectedMajorId;
+
+    // Lọc các tổ hợp phù hợp với danh mục thí sinh đã đăng ký
+    const registeredUpper = (chosenCombos || []).map(c => c.trim().toUpperCase());
+    const validMatches = (majorObj?.combos || []).filter(c => registeredUpper.includes(c.trim().toUpperCase()));
+
+    if (validMatches.length === 0) {
+      toast.error(
+        'Hệ thống từ chối đăng ký nguyện vọng đó vì lý do tổ hợp môn đăng ký xét tuyển chưa có tổ hợp phù hợp với nguyện vọng đang xét tuyển. Mời bạn thay đổi.',
+        'Từ chối đăng ký'
+      );
+      return;
+    }
+
+    if (selectedCombosForWish.length === 0) {
+      toast.warning('Vui lòng chọn ít nhất một tổ hợp môn xét tuyển hợp lệ.');
       return;
     }
 
     const nextOrder = currentWishes.length + 1;
     const isValid = await validateWishPosition(selectedUniId, selectedMajorId, nextOrder);
     if (!isValid) return;
-
-    const uniObj = universities.find(u => u.id === selectedUniId);
-    const majorObj = allMajors.find(m => m.uniId === selectedUniId && m.id === selectedMajorId);
-    const majorName = majorObj?.name || selectedMajorId;
 
     if (editingIndex >= 0) {
       const updated = [...currentWishes];
@@ -524,10 +541,17 @@ export const StudentPC: React.FC<Props> = ({ user, onLogout, onSwitchToMobile })
   const handleAddFromSuggestion = (major: Major, uniName: string) => {
     setSelectedUniId(major.uniId);
     setSelectedMajorId(major.id);
-    const compatible = major.combos.filter(c => chosenCombos.includes(c));
-    setSelectedCombosForWish(compatible.length > 0 ? [compatible[0]] : [major.combos[0]]);
+    const regUpper = (chosenCombos || []).map(c => c.trim().toUpperCase());
+    const compatible = major.combos.filter(c => regUpper.includes(c.trim().toUpperCase()));
+    if (compatible.length > 0) {
+      // Mặc định chọn tất cả các tổ hợp hợp lệ
+      setSelectedCombosForWish(compatible);
+      toast.success(`Đã tự động chọn ${compatible.length} tổ hợp hợp lệ: ${compatible.join(', ')}`);
+    } else {
+      setSelectedCombosForWish([]);
+      toast.error('Hệ thống từ chối đăng ký: Tổ hợp môn đăng ký xét tuyển chưa có tổ hợp phù hợp với ngành này. Mời bạn thay đổi.');
+    }
     setActiveTab('wishes');
-    toast.info(`Đã chọn ngành ${major.name}. Hãy kiểm tra và nhấn "Đưa vào danh sách"!`);
   };
 
   const handleChangePassword = async () => {
@@ -558,6 +582,11 @@ export const StudentPC: React.FC<Props> = ({ user, onLogout, onSwitchToMobile })
   );
 
   const currentSelectedMajor = allMajors.find(m => m.uniId === selectedUniId && m.id === selectedMajorId);
+  const registeredCombosUpper = (chosenCombos || []).map(c => c.trim().toUpperCase());
+  const validMatchedCombos = currentSelectedMajor
+    ? currentSelectedMajor.combos.filter(c => registeredCombosUpper.includes(c.trim().toUpperCase()))
+    : [];
+  const hasValidMatchedCombos = validMatchedCombos.length > 0;
 
   const displayedSuggestions = suggestedResults.filter(item => {
     if (!suggestLocalFilter.trim()) return true;
@@ -1278,9 +1307,26 @@ export const StudentPC: React.FC<Props> = ({ user, onLogout, onSwitchToMobile })
                         onChange={(e) => {
                           const mId = e.target.value;
                           setSelectedMajorId(mId);
+                          if (!mId) {
+                            setSelectedCombosForWish([]);
+                            return;
+                          }
                           const mObj = allMajors.find(m => m.uniId === selectedUniId && m.id === mId);
-                          if (mObj && mObj.combos.length > 0) {
-                            setSelectedCombosForWish([mObj.combos[0]]);
+                          if (mObj) {
+                            const regUpper = (chosenCombos || []).map(c => c.trim().toUpperCase());
+                            const matched = (mObj.combos || []).filter(c => regUpper.includes(c.trim().toUpperCase()));
+                            if (matched.length > 0) {
+                              // Hệ thống mặc định chọn tất cả các tổ hợp hợp lệ
+                              setSelectedCombosForWish(matched);
+                              toast.success(`Đã tự động chọn ${matched.length} tổ hợp hợp lệ: ${matched.join(', ')}`);
+                            } else {
+                              // Không có tổ hợp phù hợp, từ chối đăng ký
+                              setSelectedCombosForWish([]);
+                              toast.error(
+                                'Hệ thống từ chối đăng ký nguyện vọng đó vì lý do tổ hợp môn đăng ký xét tuyển chưa có tổ hợp phù hợp với nguyện vọng đang xét tuyển. Mời bạn thay đổi.',
+                                'Từ chối đăng ký'
+                              );
+                            }
                           } else {
                             setSelectedCombosForWish([]);
                           }
@@ -1297,48 +1343,158 @@ export const StudentPC: React.FC<Props> = ({ user, onLogout, onSwitchToMobile })
                     </div>
 
                     {/* Step 3: Combos */}
-                    {currentSelectedMajor && (
-                      <div className="space-y-1.5 pt-2 border-t">
-                        <label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">
-                          Bước 3: Chọn Tổ hợp môn xét tuyển
-                        </label>
-                        <div className="flex flex-wrap gap-1.5 p-2.5 rounded-xl bg-blue-50/60 border border-blue-100">
-                          {currentSelectedMajor.combos.map(c => {
-                            const isChecked = selectedCombosForWish.includes(c);
-                            return (
-                              <label
-                                key={c}
-                                className={`text-xs font-bold px-2.5 py-1 rounded-lg cursor-pointer border transition ${
-                                  isChecked
-                                    ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
-                                    : 'bg-white text-slate-700 border-slate-300'
-                                }`}
+                    <div className="space-y-1.5 pt-2 border-t">
+                      <label className={`block text-xs font-bold mb-1 uppercase tracking-wider flex items-center justify-between ${
+                        !currentSelectedMajor
+                          ? 'text-slate-500'
+                          : hasValidMatchedCombos
+                          ? 'text-slate-700'
+                          : 'text-rose-700'
+                      }`}>
+                        <span>Bước 3: Chọn Tổ hợp môn xét tuyển</span>
+                        {currentSelectedMajor && hasValidMatchedCombos && (
+                          <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 normal-case flex items-center gap-1">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 inline" />
+                            Đã tự động chọn {selectedCombosForWish.length} tổ hợp hợp lệ
+                          </span>
+                        )}
+                        {currentSelectedMajor && !hasValidMatchedCombos && (
+                          <span className="text-[11px] font-bold text-rose-700 bg-rose-50 px-2.5 py-0.5 rounded-full border border-rose-200 normal-case flex items-center gap-1">
+                            <AlertCircle className="w-3.5 h-3.5 text-rose-600 inline" />
+                            Từ chối đăng ký
+                          </span>
+                        )}
+                      </label>
+
+                      {/* div:nth-of-type(1) of Step 3 */}
+                      <div>
+                        {!currentSelectedMajor ? (
+                          <div className="p-3.5 rounded-xl bg-slate-50 border border-dashed border-slate-200 text-xs text-slate-500 text-center leading-relaxed">
+                            💡 Vui lòng chọn trường và ngành học ở bước 1 & 2. Hệ thống sẽ tự động lọc và chọn tất cả các tổ hợp hợp lệ trong danh mục bạn đã đăng ký.
+                          </div>
+                        ) : hasValidMatchedCombos ? (
+                          <div className="space-y-2 p-3 rounded-xl bg-emerald-50/60 border border-emerald-200">
+                            <div className="flex items-start gap-2 text-xs text-emerald-900 font-medium">
+                              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                              <div>
+                                <p className="font-bold text-emerald-900">Đã tự động lọc tổ hợp môn phù hợp!</p>
+                                <p className="text-[11px] text-emerald-700">
+                                  Hệ thống đã chọn tất cả các tổ hợp hợp lệ bạn đã đăng ký ({validMatchedCombos.join(', ')}). Bạn chỉ cần xác nhận nguyện vọng bên dưới.
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="flex flex-wrap gap-1.5 pt-1">
+                              {currentSelectedMajor.combos.map(c => {
+                                const isMatched = registeredCombosUpper.includes(c.trim().toUpperCase());
+                                const isChecked = selectedCombosForWish.includes(c);
+                                if (!isMatched) {
+                                  return (
+                                    <span
+                                      key={c}
+                                      title="Tổ hợp này chưa có trong danh mục bạn đã đăng ký xét tuyển"
+                                      className="text-xs font-mono font-semibold px-2.5 py-1 rounded-lg border border-dashed border-slate-300 text-slate-400 bg-slate-100 cursor-not-allowed flex items-center gap-1"
+                                    >
+                                      <span>{c}</span>
+                                      <span className="text-[10px] text-slate-400 font-sans">(Chưa đăng ký)</span>
+                                    </span>
+                                  );
+                                }
+                                return (
+                                  <label
+                                    key={c}
+                                    className={`text-xs font-bold font-mono px-2.5 py-1 rounded-lg cursor-pointer border transition flex items-center gap-1.5 ${
+                                      isChecked
+                                        ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                                        : 'bg-white text-slate-700 border-slate-300 hover:border-emerald-400'
+                                    }`}
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={isChecked}
+                                      onChange={() => {
+                                        setSelectedCombosForWish(prev =>
+                                          prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c]
+                                        );
+                                      }}
+                                      className="sr-only"
+                                    />
+                                    <span>{c}</span>
+                                    <span className={`text-[10px] px-1 py-0.2 rounded font-sans ${isChecked ? 'bg-emerald-700 text-white' : 'bg-emerald-50 text-emerald-700'}`}>
+                                      Hợp lệ
+                                    </span>
+                                  </label>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="space-y-2.5 p-3.5 rounded-xl bg-rose-50/90 border-2 border-rose-300 text-xs text-rose-900">
+                            <div className="flex items-start space-x-2">
+                              <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+                              <div className="space-y-1">
+                                <p className="font-bold text-rose-800 text-xs uppercase tracking-wide">
+                                  Hệ thống từ chối đăng ký nguyện vọng này!
+                                </p>
+                                <p className="text-[11.5px] leading-relaxed text-rose-700 font-medium">
+                                  Lý do: Tổ hợp môn đăng ký xét tuyển chưa có tổ hợp phù hợp với nguyện vọng đang xét tuyển. Mời bạn thay đổi.
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="p-2.5 bg-white/95 rounded-lg border border-rose-200 text-[11px] space-y-1">
+                              <p className="text-slate-700">
+                                • Ngành <b>{currentSelectedMajor.name}</b> yêu cầu các tổ hợp:{' '}
+                                <span className="font-bold font-mono text-rose-700">
+                                  {currentSelectedMajor.combos.length > 0 ? currentSelectedMajor.combos.join(', ') : 'Chưa quy định'}
+                                </span>
+                              </p>
+                              <p className="text-slate-700">
+                                • Tổ hợp bạn đã đăng ký thi:{' '}
+                                <span className="font-bold font-mono text-indigo-700">
+                                  {chosenCombos.length > 0 ? chosenCombos.join(', ') : '(Bạn chưa đăng ký tổ hợp nào)'}
+                                </span>
+                              </p>
+                            </div>
+
+                            <div className="pt-1 flex gap-2">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedMajorId('');
+                                  setSelectedCombosForWish([]);
+                                }}
+                                className="flex-1 py-1.5 px-2 bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold rounded-lg text-[11px] transition text-center border border-rose-200"
                               >
-                                <input
-                                  type="checkbox"
-                                  checked={isChecked}
-                                  onChange={() => {
-                                    setSelectedCombosForWish(prev =>
-                                      prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c]
-                                    );
-                                  }}
-                                  className="sr-only"
-                                />
-                                <span>{c}</span>
-                              </label>
-                            );
-                          })}
-                        </div>
+                                Thay đổi ngành khác
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setActiveTab('combos')}
+                                className="flex-1 py-1.5 px-2 bg-white hover:bg-rose-50 text-rose-700 border border-rose-300 font-bold rounded-lg text-[11px] transition text-center shadow-xs"
+                              >
+                                Bổ sung tổ hợp môn
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    )}
+                    </div>
                   </div>
 
                   <div className="pt-2">
                     <button
                       onClick={handleAddWishRow}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl text-xs font-bold transition shadow-md shadow-blue-500/20 active:scale-95"
+                      disabled={currentSelectedMajor && !hasValidMatchedCombos}
+                      className={`w-full py-2.5 rounded-xl text-xs font-bold transition shadow-md active:scale-95 ${
+                        currentSelectedMajor && !hasValidMatchedCombos
+                          ? 'bg-rose-100 text-rose-700 border border-rose-300 cursor-not-allowed opacity-90'
+                          : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/20'
+                      }`}
                     >
-                      {editingIndex >= 0 ? 'Cập nhật Nguyện vọng' : 'Đưa vào danh sách'}
+                      {currentSelectedMajor && !hasValidMatchedCombos
+                        ? '❌ Từ chối đăng ký (Chưa có tổ hợp phù hợp)'
+                        : editingIndex >= 0 ? 'Cập nhật Nguyện vọng' : 'Đưa vào danh sách'}
                     </button>
                     {editingIndex >= 0 && (
                       <button

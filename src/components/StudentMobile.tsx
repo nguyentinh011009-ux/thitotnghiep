@@ -18,7 +18,9 @@ import {
   Monitor,
   Search,
   Check,
-  Clock
+  Clock,
+  AlertCircle,
+  CheckCircle2
 } from 'lucide-react';
 
 interface Props {
@@ -265,14 +267,30 @@ export const StudentMobile: React.FC<Props> = ({ user, onLogout, onSwitchToPC })
       return;
     }
 
+    const uniObj = universities.find(u => u.id === selectedUniId);
+    const majorObj = allMajors.find(m => m.uniId === selectedUniId && m.id === selectedMajorId);
+    const majorName = majorObj?.name || selectedMajorId;
+
+    const registeredUpper = (chosenCombos || []).map(c => c.trim().toUpperCase());
+    const validMatches = (majorObj?.combos || []).filter(c => registeredUpper.includes(c.trim().toUpperCase()));
+
+    if (validMatches.length === 0) {
+      toast.error(
+        'Hệ thống từ chối đăng ký nguyện vọng đó vì lý do tổ hợp môn đăng ký xét tuyển chưa có tổ hợp phù hợp với nguyện vọng đang xét tuyển. Mời bạn thay đổi.'
+      );
+      return;
+    }
+
+    if (selectedCombosForWish.length === 0) {
+      toast.warning('Vui lòng chọn ít nhất một tổ hợp môn hợp lệ.');
+      return;
+    }
+
     const nextOrder = currentWishes.length + 1;
     const isValid = await validateWishPosition(selectedUniId, selectedMajorId, nextOrder);
     if (!isValid) return;
 
-    const uniObj = universities.find(u => u.id === selectedUniId);
-    const majorObj = allMajors.find(m => m.uniId === selectedUniId && m.id === selectedMajorId);
-    const majorName = majorObj?.name || selectedMajorId;
-    const comboStr = selectedCombosForWish.length > 0 ? selectedCombosForWish.join(', ') : (majorObj?.combos[0] || 'A00');
+    const comboStr = selectedCombosForWish.join(', ');
 
     const newWish: Wish = {
       order: nextOrder,
@@ -430,6 +448,11 @@ export const StudentMobile: React.FC<Props> = ({ user, onLogout, onSwitchToPC })
   );
 
   const currentSelectedMajor = allMajors.find(m => m.uniId === selectedUniId && m.id === selectedMajorId);
+  const registeredCombosUpper = (chosenCombos || []).map(c => c.trim().toUpperCase());
+  const validMatchedCombos = currentSelectedMajor
+    ? currentSelectedMajor.combos.filter(c => registeredCombosUpper.includes(c.trim().toUpperCase()))
+    : [];
+  const hasValidMatchedCombos = validMatchedCombos.length > 0;
 
   return (
     <div className="bg-slate-100 font-sans flex flex-col min-h-screen pb-20">
@@ -695,9 +718,23 @@ export const StudentMobile: React.FC<Props> = ({ user, onLogout, onSwitchToPC })
                   onChange={(e) => {
                     const mId = e.target.value;
                     setSelectedMajorId(mId);
+                    if (!mId) {
+                      setSelectedCombosForWish([]);
+                      return;
+                    }
                     const mObj = allMajors.find(m => m.uniId === selectedUniId && m.id === mId);
-                    if (mObj && mObj.combos.length > 0) {
-                      setSelectedCombosForWish([mObj.combos[0]]);
+                    if (mObj) {
+                      const regUpper = (chosenCombos || []).map(c => c.trim().toUpperCase());
+                      const matched = (mObj.combos || []).filter(c => regUpper.includes(c.trim().toUpperCase()));
+                      if (matched.length > 0) {
+                        setSelectedCombosForWish(matched);
+                        toast.success(`Đã tự động chọn ${matched.length} tổ hợp hợp lệ!`);
+                      } else {
+                        setSelectedCombosForWish([]);
+                        toast.error('Hệ thống từ chối đăng ký: Tổ hợp môn đăng ký xét tuyển chưa có tổ hợp phù hợp với ngành này. Mời bạn thay đổi.');
+                      }
+                    } else {
+                      setSelectedCombosForWish([]);
                     }
                   }}
                   className="w-full border border-slate-200 p-2 rounded-xl text-xs bg-white font-medium"
@@ -711,36 +748,81 @@ export const StudentMobile: React.FC<Props> = ({ user, onLogout, onSwitchToPC })
 
               {currentSelectedMajor && (
                 <div className="pt-1">
-                  <p className="font-bold text-[11px] text-slate-600 mb-1">Chọn tổ hợp:</p>
-                  <div className="flex flex-wrap gap-1">
-                    {currentSelectedMajor.combos.map(c => {
-                      const isChecked = selectedCombosForWish.includes(c);
-                      return (
-                        <button
-                          key={c}
-                          type="button"
-                          onClick={() => {
-                            setSelectedCombosForWish(prev =>
-                              prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c]
+                  {hasValidMatchedCombos ? (
+                    <div className="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200 space-y-2">
+                      <div className="flex items-start gap-1.5 text-xs text-emerald-900">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-bold text-[11px]">Đã tự động chọn tổ hợp phù hợp ({validMatchedCombos.join(', ')})</p>
+                          <p className="text-[10px] text-emerald-700">Hệ thống đã chọn tất cả tổ hợp hợp lệ của bạn. Chỉ cần bấm Thêm Nguyện Vọng.</p>
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {currentSelectedMajor.combos.map(c => {
+                          const isMatched = registeredCombosUpper.includes(c.trim().toUpperCase());
+                          const isChecked = selectedCombosForWish.includes(c);
+                          if (!isMatched) {
+                            return (
+                              <span
+                                key={c}
+                                className="text-[10px] px-2 py-0.5 rounded-lg border border-dashed border-slate-300 text-slate-400 bg-slate-50"
+                              >
+                                {c} (Chưa ĐK)
+                              </span>
                             );
-                          }}
-                          className={`text-xs px-2.5 py-1 rounded-lg border font-semibold ${
-                            isChecked ? 'bg-blue-600 text-white border-blue-600' : 'bg-slate-100 text-slate-700 border-slate-200'
-                          }`}
-                        >
-                          {c}
-                        </button>
-                      );
-                    })}
-                  </div>
+                          }
+                          return (
+                            <button
+                              key={c}
+                              type="button"
+                              onClick={() => {
+                                setSelectedCombosForWish(prev =>
+                                  prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c]
+                                );
+                              }}
+                              className={`text-xs px-2.5 py-1 rounded-lg border font-bold transition flex items-center gap-1 ${
+                                isChecked ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-slate-700 border-slate-300'
+                              }`}
+                            >
+                              <span>{c}</span>
+                              <span className={`text-[9px] px-1 rounded ${isChecked ? 'bg-emerald-700' : 'bg-emerald-50 text-emerald-700'}`}>Hợp lệ</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-2.5 rounded-xl bg-rose-50 border-2 border-rose-300 text-xs text-rose-900 space-y-1.5">
+                      <div className="flex items-start gap-1.5">
+                        <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-bold text-rose-800 text-[11px]">Hệ thống từ chối đăng ký nguyện vọng này!</p>
+                          <p className="text-[10.5px] text-rose-700 leading-snug">
+                            Lý do: Tổ hợp môn đăng ký xét tuyển chưa có tổ hợp phù hợp với nguyện vọng đang xét tuyển. Mời bạn thay đổi.
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-[10px] bg-white/80 p-1.5 rounded border border-rose-200">
+                        <p>• Ngành yêu cầu: <b className="text-rose-700">{currentSelectedMajor.combos.join(', ')}</b></p>
+                        <p>• Bạn đã đăng ký: <b className="text-indigo-700">{chosenCombos.length > 0 ? chosenCombos.join(', ') : 'Chưa có'}</b></p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
               <button
                 onClick={handleAddWish}
-                className="w-full bg-blue-600 text-white py-2 rounded-xl text-xs font-bold hover:bg-blue-700 shadow-sm"
+                disabled={currentSelectedMajor && !hasValidMatchedCombos}
+                className={`w-full py-2.5 rounded-xl text-xs font-bold shadow-sm transition ${
+                  currentSelectedMajor && !hasValidMatchedCombos
+                    ? 'bg-rose-100 text-rose-700 border border-rose-300 cursor-not-allowed opacity-90'
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
               >
-                + Thêm Nguyện Vọng
+                {currentSelectedMajor && !hasValidMatchedCombos
+                  ? '❌ Từ chối đăng ký (Chưa có tổ hợp phù hợp)'
+                  : '+ Thêm Nguyện Vọng'}
               </button>
             </div>
 
